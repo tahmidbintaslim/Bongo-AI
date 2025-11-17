@@ -13,6 +13,8 @@ jobs:
   lint-and-test:
     name: Lint and Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
@@ -37,6 +39,8 @@ jobs:
     name: Build Services
     needs: lint-and-test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         service: [auth-service, content-service, ai-service, analytics-service]
@@ -61,6 +65,8 @@ jobs:
     needs: build-services
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
@@ -85,6 +91,8 @@ jobs:
     needs: docker-build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
+    permissions:
+      contents: read
     
     steps:
       - name: Deploy to staging
@@ -95,6 +103,8 @@ jobs:
     needs: docker-build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
     
     steps:
       - name: Deploy to production
