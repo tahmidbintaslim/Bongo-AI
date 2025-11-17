@@ -1,0 +1,148 @@
+version: '3.8'
+
+services:
+  # Databases
+  postgres:
+    image: postgres:15-alpine
+    container_name: bongo-ai-postgres
+    environment:
+      POSTGRES_DB: bongo_ai
+      POSTGRES_USER: bongo_user
+      POSTGRES_PASSWORD: bongo_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bongo-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: bongo-ai-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bongo-network
+
+  mongodb:
+    image: mongo:6
+    container_name: bongo-ai-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: bongo_user
+      MONGO_INITDB_ROOT_PASSWORD: bongo_pass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - bongo-network
+
+  # Microservices
+  auth-service:
+    build:
+      context: ./apps/backend/auth-service
+      dockerfile: Dockerfile
+    container_name: bongo-ai-auth
+    ports:
+      - "4001:4001"
+    environment:
+      NODE_ENV: development
+      PORT: 4001
+      DATABASE_URL: postgresql://bongo_user:bongo_pass@postgres:5432/bongo_ai
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev_secret}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bongo-network
+
+  content-service:
+    build:
+      context: ./apps/backend/content-service
+      dockerfile: Dockerfile
+    container_name: bongo-ai-content
+    ports:
+      - "4002:4002"
+    environment:
+      NODE_ENV: development
+      PORT: 4002
+      DATABASE_URL: postgresql://bongo_user:bongo_pass@postgres:5432/bongo_ai
+      MONGODB_URL: mongodb://bongo_user:bongo_pass@mongodb:27017/bongo_ai?authSource=admin
+    depends_on:
+      - postgres
+      - mongodb
+    networks:
+      - bongo-network
+
+  ai-service:
+    build:
+      context: ./apps/backend/ai-service
+      dockerfile: Dockerfile
+    container_name: bongo-ai-service
+    ports:
+      - "4003:4003"
+    environment:
+      NODE_ENV: development
+      PORT: 4003
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      COHERE_API_KEY: ${COHERE_API_KEY}
+      PINECONE_API_KEY: ${PINECONE_API_KEY}
+      PINECONE_ENVIRONMENT: ${PINECONE_ENVIRONMENT}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - bongo-network
+
+  analytics-service:
+    build:
+      context: ./apps/backend/analytics-service
+      dockerfile: Dockerfile
+    container_name: bongo-ai-analytics
+    ports:
+      - "4004:4004"
+    environment:
+      NODE_ENV: development
+      PORT: 4004
+      DATABASE_URL: postgresql://bongo_user:bongo_pass@postgres:5432/bongo_ai
+      MONGODB_URL: mongodb://bongo_user:bongo_pass@mongodb:27017/bongo_ai?authSource=admin
+    depends_on:
+      - postgres
+      - mongodb
+    networks:
+      - bongo-network
+
+  # API Gateway (Optional)
+  api-gateway:
+    build:
+      context: ./apps/backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: bongo-ai-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      AUTH_SERVICE_URL: http://auth-service:4001
+      CONTENT_SERVICE_URL: http://content-service:4002
+      AI_SERVICE_URL: http://ai-service:4003
+      ANALYTICS_SERVICE_URL: http://analytics-service:4004
+    depends_on:
+      - auth-service
+      - content-service
+      - ai-service
+      - analytics-service
+    networks:
+      - bongo-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+
+networks:
+  bongo-network:
+    driver: bridge

@@ -1,0 +1,39 @@
+{
+  "name": "bongo-ai",
+  "version": "1.0.0",
+  "description": "Bengali Study Assistant for Bangladesh",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "mobile": "yarn workspace @bongo-ai/mobile start",
+    "web": "yarn workspace @bongo-ai/web dev",
+    "desktop": "yarn workspace @bongo-ai/desktop dev",
+    "backend:auth": "yarn workspace @bongo-ai/auth-service dev",
+    "backend:content": "yarn workspace @bongo-ai/content-service dev",
+    "backend:ai": "yarn workspace @bongo-ai/ai-service dev",
+    "backend:analytics": "yarn workspace @bongo-ai/analytics-service dev",
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "terraform:init": "cd infrastructure/terraform && terraform init",
+    "terraform:plan": "cd infrastructure/terraform && terraform plan",
+    "terraform:apply": "cd infrastructure/terraform && terraform apply"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.45.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  }
+}
