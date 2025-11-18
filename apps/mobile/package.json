@@ -1,0 +1,41 @@
+{
+  "name": "@bongo-ai/mobile",
+  "version": "1.0.0",
+  "description": "Bongo AI React Native Mobile App",
+  "main": "index.js",
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint .",
+    "build:android": "cd android && ./gradlew assembleRelease",
+    "build:ios": "cd ios && xcodebuild -workspace BongoAI.xcworkspace -scheme BongoAI -configuration Release"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-native": "^0.72.0",
+    "@react-navigation/native": "^6.1.0",
+    "@react-navigation/stack": "^6.3.0",
+    "@reduxjs/toolkit": "^1.9.0",
+    "react-redux": "^8.1.0",
+    "redux-persist": "^6.0.0",
+    "@react-native-async-storage/async-storage": "^1.19.0",
+    "react-i18next": "^13.2.0",
+    "i18next": "^23.5.0",
+    "axios": "^1.5.0",
+    "react-native-vector-icons": "^10.0.0",
+    "@bongo-ai/shared": "1.0.0",
+    "@bongo-ai/i18n": "1.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.0",
+    "@babel/runtime": "^7.22.0",
+    "@react-native/metro-config": "^0.72.0",
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.72.0",
+    "typescript": "^5.1.0",
+    "jest": "^29.6.0",
+    "@testing-library/react-native": "^12.3.0"
+  }
+}
