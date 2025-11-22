@@ -12,6 +12,4 @@ const rootTag = document.getElementById('root');
 if (rootTag) {
   const root = createRoot(rootTag);
   root.render(<App />);
-} else {
-  console.error('Root element not found');
 }

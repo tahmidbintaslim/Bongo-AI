@@ -3,6 +3,10 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Button, Card } from '@bongo-ai/ui-components';
 
 const App: React.FC = () => {
+  const handleGetStarted = () => {
+    // TODO: Implement navigation to getting started screen
+  };
+
   return (
     <View style={styles.container}>
       <Card title="স্বাগতম বঙ্গো এআই">
@@ -15,7 +19,7 @@ const App: React.FC = () => {
         <View style={styles.buttonContainer}>
           <Button
             title="শুরু করুন"
-            onPress={() => console.log('Getting started')}
+            onPress={handleGetStarted}
             variant="primary"
           />
         </View>

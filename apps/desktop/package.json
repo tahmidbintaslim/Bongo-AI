@@ -5,17 +5,18 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "electron .",
-    "build": "tsc && electron-builder",
+    "build": "tsc",
+    "build:electron": "tsc && electron-builder",
     "start:electron": "tsc && electron .",
     "test": "jest",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "electron": "^27.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.1.0",
+    "electron": "^27.0.0",
     "electron-builder": "^24.6.0",
     "jest": "^29.6.0"
   },
