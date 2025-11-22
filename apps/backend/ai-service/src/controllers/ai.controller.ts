@@ -10,7 +10,7 @@ const vectorStoreService = new VectorStoreService();
 export class AIController {
   async query(req: Request, res: Response) {
     try {
-      const { query, userId, context, language = 'bn' } = req.body;
+      const { query, userId, language = 'bn' } = req.body;
 
       if (!query) {
         return res.status(400).json({
@@ -53,7 +53,7 @@ export class AIController {
 
   async embed(req: Request, res: Response) {
     try {
-      const { text, language = 'bn' } = req.body;
+      const { text } = req.body;
 
       if (!text) {
         return res.status(400).json({

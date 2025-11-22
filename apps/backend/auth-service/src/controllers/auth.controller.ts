@@ -63,15 +63,20 @@ export class AuthController {
       }
 
       // Generate tokens
+      const jwtSecret = process.env.JWT_SECRET || 'dev_secret';
+      const refreshSecret = process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_secret';
+      
+      // @ts-ignore - TypeScript version compatibility
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
-        process.env.JWT_SECRET || 'dev_secret',
+        jwtSecret,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
 
+      // @ts-ignore - TypeScript version compatibility
       const refreshToken = jwt.sign(
         { userId: user.id },
-        process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_secret',
+        refreshSecret,
         { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '30d' }
       );
 
@@ -111,15 +116,19 @@ export class AuthController {
       }
 
       // Verify refresh token
+      const refreshSecret = process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_secret';
       const decoded = jwt.verify(
         refreshToken,
-        process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_secret'
+        refreshSecret
       ) as any;
 
       // Generate new access token
+      const jwtSecret = process.env.JWT_SECRET || 'dev_secret';
+      
+      // @ts-ignore - TypeScript version compatibility
       const accessToken = jwt.sign(
         { userId: decoded.userId },
-        process.env.JWT_SECRET || 'dev_secret',
+        jwtSecret,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
 
