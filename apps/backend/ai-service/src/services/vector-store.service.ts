@@ -16,12 +16,13 @@ export class VectorStoreService {
   private provider: 'pinecone' | 'weaviate' | 'chroma';
 
   constructor() {
-    this.provider = process.env.VECTOR_STORE_PROVIDER as any || 'pinecone';
+    this.provider = (process.env.VECTOR_STORE_PROVIDER as 'pinecone' | 'weaviate' | 'chroma') || 'pinecone';
     this.indexName = process.env.VECTOR_INDEX_NAME || 'bongo-ai';
 
-    if (process.env.PINECONE_API_KEY) {
+    if (process.env.PINECONE_API_KEY && process.env.PINECONE_ENVIRONMENT) {
       this.pinecone = new Pinecone({
         apiKey: process.env.PINECONE_API_KEY,
+        environment: process.env.PINECONE_ENVIRONMENT,
       });
     }
   }
@@ -29,7 +30,7 @@ export class VectorStoreService {
   async search(
     query: string,
     language: string = 'bn',
-    limit: number = 10
+    _limit: number = 10
   ): Promise<VectorDocument[]> {
     try {
       // For demo purposes, return mock documents

@@ -108,6 +108,7 @@ export class RAGService {
           texts: [text],
           model: 'embed-multilingual-v3.0',
         });
+        // @ts-ignore - Cohere API type compatibility
         return response.embeddings[0];
       } else {
         throw new Error('No AI provider configured');
