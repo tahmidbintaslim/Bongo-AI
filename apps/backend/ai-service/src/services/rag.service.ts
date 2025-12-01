@@ -4,9 +4,14 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('rag-service');
 
+interface Document {
+  content: string;
+  // add other known fields here, e.g. id?: string, metadata?: Record<string, unknown>
+}
+
 interface RAGRequest {
   query: string;
-  documents: any[];
+  documents: Document[];
   language: string;
   maxTokens?: number;
 }
@@ -17,7 +22,7 @@ export class RAGService {
   private provider: 'openai' | 'cohere';
 
   constructor() {
-    this.provider = process.env.AI_PROVIDER as 'openai' | 'cohere' || 'openai';
+    this.provider = (process.env.AI_PROVIDER as 'openai' | 'cohere') ?? 'openai';
 
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({
@@ -42,11 +47,11 @@ export class RAGService {
 
     // System prompt for Bengali
     const systemPrompt = language === 'bn'
-      ? `আপনি একজন বাংলাদেশের শিক্ষার্থীদের জন্য সহায়ক AI শিক্ষক। আপনি বাংলায় সঠিক এবং সহায়ক উত্তর প্রদান করুন।`
+      ? `আপনি একজন বাংলাদেশের শিক্ষার্থীদের জন্য সহায়ক AI শিক্ষক। আপনি বাংলায��[...]`
       : `You are a helpful AI tutor for students in Bangladesh. Provide accurate and helpful answers.`;
 
     const userPrompt = language === 'bn'
-      ? `প্রসঙ্গ:\n${context}\n\nপ্রশ্ন: ${query}\n\nউপরের প্রসঙ্গের উপর ভিত্তি করে বাংলায় একটি সহায়ক উত্তর প্রদান করুন।`
+      ? `প্রসঙ্গ:\n${context}\n\nপ্রশ্ন: ${query}\n\nউপরের প্রসঙ্গের উপর ভিত্তি করে বাংলায় একটি[...]`
       : `Context:\n${context}\n\nQuestion: ${query}\n\nProvide a helpful answer based on the context above.`;
 
     try {
@@ -108,7 +113,7 @@ export class RAGService {
           texts: [text],
           model: 'embed-multilingual-v3.0',
         });
-        // @ts-ignore - Cohere API type compatibility
+        // @ts-expect-error Cohere API type compatibility
         return response.embeddings[0];
       } else {
         throw new Error('No AI provider configured');
