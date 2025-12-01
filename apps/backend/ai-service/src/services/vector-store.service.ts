@@ -7,7 +7,7 @@ interface VectorDocument {
   id: string;
   content: string;
   embedding?: number[];
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export class VectorStoreService {
@@ -16,7 +16,7 @@ export class VectorStoreService {
   private provider: 'pinecone' | 'weaviate' | 'chroma';
 
   constructor() {
-    this.provider = (process.env.VECTOR_STORE_PROVIDER as 'pinecone' | 'weaviate' | 'chroma') || 'pinecone';
+    this.provider = (process.env.VECTOR_STORE_PROVIDER as 'pinecone' | 'weaviate' | 'chroma') ?? 'pinecone';
     this.indexName = process.env.VECTOR_INDEX_NAME || 'bongo-ai';
 
     if (process.env.PINECONE_API_KEY && process.env.PINECONE_ENVIRONMENT) {
