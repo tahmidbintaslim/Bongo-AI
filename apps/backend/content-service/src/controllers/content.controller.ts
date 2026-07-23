@@ -75,10 +75,29 @@ export const getContent = async (req: Request, res: Response) => {
   }
 };
 
+// Express parses ?x[]=1 into an array and ?x[y]=1 into an object, so every
+// req.query value is attacker-controlled in TYPE as well as value. A TypeScript
+// cast is erased at runtime and guarantees nothing, so narrow before using.
+const queryString = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined;
+
+const queryStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+
+const queryInt = (value: unknown, fallback: number, max: number): number => {
+  const parsed = Number.parseInt(typeof value === 'string' ? value : '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(parsed, max) : fallback;
+};
+
 export const listContent = async (req: Request, res: Response) => {
   try {
-    const { category, tags, level, language, search, page = 1, limit = 20 } = req.query;
-    
+    const { page = 1, limit = 20 } = req.query;
+    const category = queryString(req.query.category);
+    const level = queryString(req.query.level);
+    const language = queryString(req.query.language);
+    const search = queryString(req.query.search);
+    const tags = queryStringArray(req.query.tags);
+
     let contents = Array.from(contentStore.values());
 
     // Apply filters
@@ -91,23 +110,23 @@ export const listContent = async (req: Request, res: Response) => {
     if (language) {
       contents = contents.filter(c => c.language === language);
     }
-    if (tags && Array.isArray(tags)) {
-      contents = contents.filter(c => 
+    if (tags.length > 0) {
+      contents = contents.filter(c =>
         c.tags?.some(tag => tags.includes(tag))
       );
     }
     if (search) {
-      const searchLower = (search as string).toLowerCase();
-      contents = contents.filter(c => 
+      const searchLower = search.toLowerCase();
+      contents = contents.filter(c =>
         c.title.toLowerCase().includes(searchLower) ||
         c.description?.toLowerCase().includes(searchLower) ||
         c.body.toLowerCase().includes(searchLower)
       );
     }
 
-    // Pagination
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
+    // Pagination. Capping limit also stops ?limit=1e9 from forcing a huge slice.
+    const pageNum = queryInt(page, 1, Number.MAX_SAFE_INTEGER);
+    const limitNum = queryInt(limit, 20, 100);
     const startIndex = (pageNum - 1) * limitNum;
     const endIndex = startIndex + limitNum;
     const paginatedContents = contents.slice(startIndex, endIndex);
