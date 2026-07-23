@@ -35,7 +35,10 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Error handling
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+// Express identifies error-handling middleware by arity, so the fourth
+// parameter must stay even though it is unused. Underscore-prefixed to
+// satisfy no-unused-vars without changing the signature.
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error('Error:', err);
   res.status(500).json({
     success: false,

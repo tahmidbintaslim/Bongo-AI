@@ -8,11 +8,10 @@
     "build": "tsc",
     "build:electron": "tsc && electron-builder",
     "start:electron": "tsc && electron .",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "lint": "eslint src --ext .ts"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.1.0",
@@ -37,7 +36,10 @@
       "target": "nsis"
     },
     "linux": {
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   }
 }

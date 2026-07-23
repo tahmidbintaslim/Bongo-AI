@@ -10,7 +10,11 @@ export class AuthController {
     try {
       const { email, password, name } = req.body;
 
-      // Hash password
+      // Hash password. Nothing consumes this yet because the persistence
+      // step below is still a TODO; the call is kept so the hashing cost and
+      // intent stay visible. varsIgnorePattern is not configured here, so the
+      // underscore convention does not apply and a scoped disable is needed.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // TODO: Save user to database
@@ -66,14 +70,14 @@ export class AuthController {
       const jwtSecret = process.env.JWT_SECRET || 'dev_secret';
       const refreshSecret = process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_secret';
       
-      // @ts-ignore - TypeScript version compatibility
+      // @ts-expect-error - TypeScript version compatibility
       const accessToken = jwt.sign(
         { userId: user.id, email: user.email, role: user.role },
         jwtSecret,
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
 
-      // @ts-ignore - TypeScript version compatibility
+      // @ts-expect-error - TypeScript version compatibility
       const refreshToken = jwt.sign(
         { userId: user.id },
         refreshSecret,
@@ -125,7 +129,7 @@ export class AuthController {
       // Generate new access token
       const jwtSecret = process.env.JWT_SECRET || 'dev_secret';
       
-      // @ts-ignore - TypeScript version compatibility
+      // @ts-expect-error - TypeScript version compatibility
       const accessToken = jwt.sign(
         { userId: decoded.userId },
         jwtSecret,
