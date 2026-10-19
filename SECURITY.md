@@ -1,243 +1,41 @@
-# Security Summary - Bongo AI
+# Security
 
-## Security Analysis Results
+Bongo AI is a prototype. It is not ready for production or for real student data. This page lists what the code does today and what it does not do.
 
-### CodeQL Security Scan
-✅ **Status**: All Clear (0 alerts)
-- **Date**: Latest commit
-- **Languages Scanned**: JavaScript, TypeScript, GitHub Actions
-- **Issues Found**: 0
-- **Issues Fixed**: 7 (GITHUB_TOKEN permissions)
+## Reporting a vulnerability
 
-### Security Vulnerabilities Fixed
+Please do not open a public issue. Report it privately through GitHub's private vulnerability reporting on this repository (Security tab, "Report a vulnerability"). If that option is not available, contact the maintainer through [github.com/tahmidbintaslim](https://github.com/tahmidbintaslim). There is no bug bounty.
 
-#### 1. GitHub Actions Workflow Permissions
-**Issue**: Missing explicit GITHUB_TOKEN permissions in workflow jobs
-**Risk**: Could allow unintended access to repository resources
-**Fix**: Added explicit permissions blocks to all workflow jobs with principle of least privilege
-**Files**:
-- `.github/workflows/ci-cd.yml`
-- `.github/workflows/security.yml`
+## In place
 
-**Permissions Applied**:
-- `contents: read` - For jobs that only need to read repository contents
-- `security-events: write` - For CodeQL analysis and security scanning results
-- No permissions for deployment jobs (will use deployment-specific tokens)
+- **Token checks.** Every route except `/health` in the ai, content and analytics services, and `GET /api/auth/me`, requires `Authorization: Bearer <JWT>`. Tokens are verified with `JWT_SECRET` as HS256 only and must carry `userId` and `exp`. Missing, forged, unsigned, expired and non-expiring tokens get `401` (`src/middleware/auth.middleware.ts` in each service).
+- **No fallback secrets.** The auth, content, ai and analytics services refuse to start unless `JWT_SECRET` is set and at least 32 characters long. `docker-compose.yml` also requires it.
+- **No password handling.** Register, login, refresh and logout return `501`. The earlier mock login that accepted any email with `password123` has been removed.
+- **AI key protection.** Every `/api/ai/*` request is rate-limited per user (default 20 per 15 minutes), JSON bodies over 16 KB get `413`, and `query` and `text` must be strings. Authentication runs before the body is read.
+- **CORS allowlist.** All five services send CORS headers only to the exact origins in `CORS_ORIGINS`. Empty means none. Wildcards are rejected at startup.
+- **Headers and limits.** Every service uses `helmet` defaults. The auth, content and analytics services also rate-limit per IP (default 100 per 15 minutes).
+- **Input validation.** Zod schemas validate content create and update bodies, analytics events, and the register and login bodies.
+- **Errors.** `500` responses return a generic message. The error detail is included only when `NODE_ENV=development`.
+- **Secrets in git.** No secrets are committed. `.env` is gitignored and `.env.example` has empty placeholders.
+- **Dependencies.** Known transitive advisories are pinned through `resolutions` in `package.json`.
 
-### Security Features Implemented
+## Not in place
 
-#### Authentication & Authorization
-✅ JWT-based authentication with secure token management
-✅ Bcrypt password hashing (10 rounds)
-✅ Refresh token mechanism
-✅ Session management with Redis
-✅ Token expiration and rotation
+- **Accounts and sessions.** There is no user store, so there is no password storage, refresh-token rotation or server-side logout. A token stays valid until it expires, or until `JWT_SECRET` is rotated, which invalidates every token.
+- **Authorization.** Any valid token can read, change and delete all content and read every user's analytics. Analytics events accept any `userId` in the body. There are no roles or ownership checks.
+- **Persistence and encryption at rest.** Content and analytics live in process memory. No service connects to Postgres, Redis or MongoDB.
+- **Shared rate limits.** Counters are in memory per process, so they reset on restart and are not shared between instances. Behind the gateway or another proxy, the per-IP limits see the proxy's address because `trust proxy` is not configured.
+- **Containers.** The Dockerfiles have no non-root `USER`, and the service images do not build today.
+- **Cloud setup.** The Terraform has no IAM roles, secrets manager, WAF or compute. It is not a hardened deployment.
+- **Compliance.** No data residency, GDPR or Bangladesh-specific compliance work has been done. The Terraform region `ap-south-1` is Mumbai, India.
+- **Privacy in logs.** The AI service logs the user id and the first 50 characters of every query.
+- **Prompt injection.** User input goes into the model prompt as is. There is no filtering.
+- **Security scanning.** `.github/workflows/security.yml` (CodeQL, Trivy, `yarn audit`) is not running and uses outdated action versions.
 
-#### API Security
-✅ Rate limiting (100 requests per 15 minutes)
-✅ CORS configuration with origin whitelisting
-✅ Helmet.js security headers (XSS protection, CSP, etc.)
-✅ Input validation with Zod schemas
-✅ Request sanitization
+## Before any shared deployment
 
-#### Data Security
-✅ Encryption at rest (database, S3)
-✅ Encryption in transit (TLS 1.3)
-✅ Secure environment variable handling
-✅ No secrets in code or version control
-✅ Database connection string security
-
-#### Infrastructure Security
-✅ VPC isolation for services
-✅ Security groups with minimal access
-✅ Private subnets for databases
-✅ Encrypted storage (S3, RDS)
-✅ IAM roles with least privilege
-✅ Data residency compliance (Bangladesh)
-
-#### Container Security
-✅ Minimal base images (Alpine Linux)
-✅ Non-root user execution
-✅ No secrets in Dockerfiles
-✅ Trivy vulnerability scanning
-✅ Regular base image updates
-
-#### CI/CD Security
-✅ Explicit workflow permissions
-✅ Dependency vulnerability scanning
-✅ CodeQL static analysis
-✅ Container image scanning
-✅ Secret scanning prevention
-
-#### Application Security
-✅ No SQL injection (parameterized queries)
-✅ XSS prevention (input sanitization)
-✅ CSRF protection
-✅ Secure cookie handling
-✅ Error handling without information disclosure
-
-### Security Best Practices
-
-#### Secrets Management
-- ✅ All secrets in environment variables
-- ✅ `.env` file in `.gitignore`
-- ✅ `.env.example` for documentation
-- ✅ No hardcoded credentials
-- ✅ AWS Systems Manager for production secrets
-
-#### Monitoring & Logging
-- ✅ Structured logging with Winston
-- ✅ Security event logging
-- ✅ Error tracking (Sentry ready)
-- ✅ Audit trail for sensitive operations
-- ✅ Health check endpoints
-
-#### Data Privacy
-- ✅ Data residency compliance (Bangladesh)
-- ✅ GDPR-compliant data handling
-- ✅ User consent management
-- ✅ Data minimization
-- ✅ Secure data deletion
-
-### Vulnerability Scanning
-
-#### Automated Scans
-- **Frequency**: On every push, PR, and weekly
-- **Tools**: 
-  - CodeQL (static analysis)
-  - npm audit (dependencies)
-  - Trivy (containers)
-- **Coverage**: 
-  - Source code
-  - Dependencies
-  - Docker images
-  - Infrastructure as Code
-
-#### Manual Reviews
-- Code reviews required for all PRs
-- Security-focused review checklist
-- Regular security audits recommended
-
-### Known Limitations & Future Improvements
-
-#### Current State
-- ✅ Production-ready security foundation
-- ✅ Industry-standard authentication
-- ✅ Compliance with Bangladesh regulations
-- ✅ Automated security scanning
-
-#### Recommended Enhancements
-1. **Web Application Firewall (WAF)**
-   - Deploy AWS WAF for additional protection
-   - Rate limiting at CDN level
-
-2. **DDoS Protection**
-   - CloudFlare or AWS Shield
-   - Advanced rate limiting
-
-3. **Penetration Testing**
-   - Schedule regular pen tests
-   - Bug bounty program
-
-4. **Advanced Monitoring**
-   - SIEM integration
-   - Real-time threat detection
-   - Anomaly detection
-
-5. **Compliance Certifications**
-   - ISO 27001
-   - SOC 2
-   - Bangladesh-specific compliance
-
-6. **Database Security**
-   - Implement database activity monitoring
-   - Row-level security
-   - Data masking for sensitive fields
-
-7. **API Security**
-   - API gateway with OAuth 2.0
-   - API key management
-   - Request signing
-
-### Security Checklist
-
-#### Pre-deployment
-- [x] All secrets externalized
-- [x] SSL/TLS enabled
-- [x] Database encryption enabled
-- [x] Rate limiting configured
-- [x] CORS properly set
-- [x] Security headers applied
-- [x] Input validation implemented
-- [x] Error handling sanitized
-- [x] Dependencies updated
-- [x] Security scans passing
-
-#### Post-deployment
-- [ ] Monitor security logs
-- [ ] Regular security updates
-- [ ] Incident response plan ready
-- [ ] Backup and recovery tested
-- [ ] Penetration testing scheduled
-- [ ] Security training for team
-
-### Incident Response
-
-#### Process
-1. **Detection**: Automated alerts + monitoring
-2. **Assessment**: Severity classification
-3. **Containment**: Isolate affected systems
-4. **Eradication**: Remove vulnerability
-5. **Recovery**: Restore normal operations
-6. **Lessons Learned**: Post-mortem analysis
-
-#### Contacts
-- Security Lead: security@bongo-ai.com
-- DevOps: devops@bongo-ai.com
-- Emergency: [Emergency contact info]
-
-### Compliance
-
-#### Bangladesh Data Protection
-✅ Data stored in ap-south-1 (Mumbai)
-✅ Data residency maintained
-✅ Local data regulations followed
-✅ User consent management
-✅ Data breach notification process
-
-#### GDPR Compliance
-✅ User data rights respected
-✅ Data portability supported
-✅ Right to deletion implemented
-✅ Privacy by design
-✅ Data processing agreements
-
-### Security Updates
-
-#### Update Schedule
-- **Dependencies**: Monthly or on critical CVE
-- **Base Images**: Quarterly
-- **Security Patches**: Within 24-48 hours of release
-- **Security Audits**: Annually
-
-#### Notification Process
-- Critical: Immediate team notification
-- High: Within 24 hours
-- Medium: Next sprint
-- Low: Quarterly review
-
-### Conclusion
-
-The Bongo AI application has been implemented with security as a top priority. All identified vulnerabilities have been addressed, and comprehensive security measures are in place. The application follows industry best practices and is compliant with Bangladesh data protection requirements.
-
-**Current Security Status**: ✅ Production Ready
-
-**Recommendations**:
-1. Continue regular security updates
-2. Implement monitoring and alerting
-3. Conduct periodic penetration testing
-4. Maintain security awareness training
-5. Regular review and update of security policies
-
-**Last Updated**: 2024-11-17
-**Next Security Review**: 2025-02-17 (3 months)
+1. Add a real user store with hashed passwords, refresh-token storage and revocation, then roles and ownership checks.
+2. Set a long random `JWT_SECRET` and keep it out of the repo.
+3. Set `CORS_ORIGINS` to the exact web origins.
+4. Use an LLM key with a hard spending limit, and keep the per-user AI limit.
+5. Change the development database passwords in `docker-compose.yml`, run containers as a non-root user and put the services behind TLS.
