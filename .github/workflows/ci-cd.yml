@@ -1,111 +1,48 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main]
 
-env:
-  NODE_VERSION: '18'
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint-and-test:
-    name: Lint and Test
+  build-and-test:
+    name: Lint, build and test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
+          node-version: 22
+          cache: yarn
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run linters
+      - name: Lint
         run: yarn lint
 
-      - name: Run tests
+      # The root `yarn build` stops at apps/mobile, which has no build script,
+      # so each workspace is built explicitly. The packages go first because
+      # the web app resolves @bongo-ai/ui-components from its dist.
+      - name: Build
+        run: |
+          for workspace in i18n shared ui-components web desktop \
+            api-gateway auth-service content-service ai-service analytics-service; do
+            yarn workspace "@bongo-ai/$workspace" build
+          done
+
+      - name: Test
         run: yarn test
-
-  build-services:
-    name: Build Services
-    needs: lint-and-test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        service: [auth-service, content-service, ai-service, analytics-service]
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Build ${{ matrix.service }}
-        run: |
-          cd apps/backend/${{ matrix.service }}
-          yarn install
-          yarn build
-
-  docker-build:
-    name: Build Docker Images
-    needs: build-services
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push Docker images
-        run: |
-          docker-compose build
-          docker-compose push
-
-  deploy-staging:
-    name: Deploy to Staging
-    needs: docker-build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    permissions:
-      contents: read
-    
-    steps:
-      - name: Deploy to staging
-        run: echo "Deploy to staging environment"
-
-  deploy-production:
-    name: Deploy to Production
-    needs: docker-build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    permissions:
-      contents: read
-    
-    steps:
-      - name: Deploy to production
-        run: echo "Deploy to production environment"
