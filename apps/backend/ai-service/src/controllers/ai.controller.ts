@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { RAGService } from '../services/rag.service';
 import { VectorStoreService } from '../services/vector-store.service';
 import { createLogger } from '../utils/logger';
@@ -10,7 +11,9 @@ const vectorStoreService = new VectorStoreService();
 export class AIController {
   async query(req: Request, res: Response) {
     try {
-      const { query, userId, language = 'bn' } = req.body;
+      const { query, language = 'bn' } = req.body;
+      // Trust the verified token, not a userId field in the body.
+      const userId = (req as AuthenticatedRequest).user?.userId;
 
       if (!query) {
         return res.status(400).json({

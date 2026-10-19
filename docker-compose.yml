@@ -69,6 +69,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4002
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env, for example with openssl rand -hex 32}
       DATABASE_URL: postgresql://bongo_user:bongo_pass@postgres:5432/bongo_ai
       MONGODB_URL: mongodb://bongo_user:bongo_pass@mongodb:27017/bongo_ai?authSource=admin
     depends_on:
@@ -87,6 +88,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4003
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env, for example with openssl rand -hex 32}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       COHERE_API_KEY: ${COHERE_API_KEY}
       PINECONE_API_KEY: ${PINECONE_API_KEY}
@@ -107,6 +109,7 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4004
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env, for example with openssl rand -hex 32}
       DATABASE_URL: postgresql://bongo_user:bongo_pass@postgres:5432/bongo_ai
       MONGODB_URL: mongodb://bongo_user:bongo_pass@mongodb:27017/bongo_ai?authSource=admin
     depends_on:

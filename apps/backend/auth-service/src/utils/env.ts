@@ -35,9 +35,9 @@ export const parseCorsOrigins = (value: string | undefined): string[] => {
   if (!value) return [];
   return value
     .split(',')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0)
-    .map((entry) => {
+    .map(entry => entry.trim())
+    .filter(entry => entry.length > 0)
+    .map(entry => {
       let origin: string | undefined;
       try {
         origin = new URL(entry).origin;

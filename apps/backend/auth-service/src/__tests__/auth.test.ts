@@ -13,14 +13,14 @@ let baseUrl: string;
 
 beforeAll(async () => {
   const app = createApp(loadConfig({ JWT_SECRET: SECRET }));
-  server = await new Promise<Server>((resolve) => {
+  server = await new Promise<Server>(resolve => {
     const listening = app.listen(0, '127.0.0.1', () => resolve(listening));
   });
   baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
 
 afterAll(async () => {
-  await new Promise((resolve) => server.close(resolve));
+  await new Promise(resolve => server.close(resolve));
 });
 
 const post = (path: string, body: unknown) =>
@@ -102,10 +102,7 @@ describe('GET /api/auth/me', () => {
   });
 
   it('rejects expired tokens', async () => {
-    const expired = jwt.sign(
-      { userId: 'u1', exp: Math.floor(Date.now() / 1000) - 60 },
-      SECRET
-    );
+    const expired = jwt.sign({ userId: 'u1', exp: Math.floor(Date.now() / 1000) - 60 }, SECRET);
     expect((await getMe(`Bearer ${expired}`)).status).toBe(401);
   });
 

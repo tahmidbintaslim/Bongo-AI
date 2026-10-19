@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('content-controller');
@@ -31,7 +32,7 @@ export const createContent = async (req: Request, res: Response) => {
       ...contentData,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: (req as any).user?.id,
+      createdBy: (req as AuthenticatedRequest).user?.userId,
     };
 
     contentStore.set(id, content);
