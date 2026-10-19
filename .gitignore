@@ -10,6 +10,9 @@ coverage/
 # Production
 build/
 dist/
+# TypeScript incremental state. A committed copy makes tsc skip emit on a
+# fresh checkout, so dist ends up empty or partial.
+*.tsbuildinfo
 .next/
 out/
 
