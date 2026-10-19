@@ -27,7 +27,7 @@ Each backend service is an Express 4 app in `apps/backend/<name>` with the same 
 - `src/index.ts` loads `.env` first, validates the configuration with `loadConfig()` and exits with a clear message if it is wrong, then listens.
 - `src/app.ts` exports `createApp(config)`. The tests use it to start the app on a random port.
 - `src/config.ts` reads environment variables through the helpers in `src/utils/env.ts`.
-- `src/middleware/auth.middleware.ts` verifies Bearer JWTs.
+- `src/middleware/auth.middleware.ts` verifies Bearer JWTs. The gateway has no copy; it does not check tokens and leaves that to the services.
 
 The auth middleware and the env helpers are identical copies in each service, like the logger and validation files. Change them together until the services merge into one API.
 
@@ -44,7 +44,7 @@ Middleware order on `/api/ai`: `requireAuth`, then the per-user rate limiter, th
 
 - `GET /api/auth/me` returns the claims of the verified token (`userId`, and `email` and `role` when present).
 - `POST /api/auth/register` and `/login` validate their bodies with Zod and then return `501`. `/refresh` and `/logout` return `501`.
-- There is no user store. `pg`, `redis` and `bcrypt` are declared dependencies, but nothing imports `pg` or `redis`.
+- There is no user store. `pg`, `redis` and `bcrypt` are declared dependencies of the auth service, but nothing imports them.
 
 ### Content service (port 4002)
 
