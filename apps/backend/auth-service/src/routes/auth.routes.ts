@@ -1,15 +1,19 @@
-import { Router } from 'express';
-import { AuthController } from '../controllers/auth.controller';
+import { Router, type Router as ExpressRouter } from 'express';
+import { getProfile, notImplemented } from '../controllers/auth.controller';
+import { requireAuth } from '../middleware/auth.middleware';
 import { validateRequest } from '../middleware/validation.middleware';
 import { LoginSchema, RegisterSchema } from '../schemas/auth.schema';
 
-const router = Router();
-const authController = new AuthController();
+export const createAuthRouter = (jwtSecret: string): ExpressRouter => {
+  const router = Router();
 
-router.post('/register', validateRequest(RegisterSchema), authController.register);
-router.post('/login', validateRequest(LoginSchema), authController.login);
-router.post('/refresh', authController.refreshToken);
-router.post('/logout', authController.logout);
-router.get('/me', authController.getProfile);
+  // The request contracts stay validated so a future user store only has to
+  // replace the handlers.
+  router.post('/register', validateRequest(RegisterSchema), notImplemented);
+  router.post('/login', validateRequest(LoginSchema), notImplemented);
+  router.post('/refresh', notImplemented);
+  router.post('/logout', notImplemented);
+  router.get('/me', requireAuth(jwtSecret), getProfile);
 
-export default router;
+  return router;
+};

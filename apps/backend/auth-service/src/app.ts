@@ -1,0 +1,58 @@
+import express, { Application, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { AuthServiceConfig } from './config';
+import { createLogger } from './utils/logger';
+import { createAuthRouter } from './routes/auth.routes';
+
+const logger = createLogger('auth-service');
+
+export const createApp = (config: AuthServiceConfig): Application => {
+  const app: Application = express();
+
+  // Middleware
+  app.use(helmet());
+  app.use(cors());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Rate limiting
+  const limiter = rateLimit({
+    windowMs: config.rateLimit.windowMs,
+    max: config.rateLimit.max,
+    message: 'Too many requests from this IP, please try again later.',
+  });
+  app.use('/api/', limiter);
+
+  // Routes
+  app.use('/api/auth', createAuthRouter(config.jwtSecret));
+
+  // Health check
+  app.get('/health', (req: Request, res: Response) => {
+    res.json({ status: 'ok', service: 'auth-service' });
+  });
+
+  // Error handling
+  // Express identifies error-handling middleware by arity, so the fourth
+  // parameter must stay even though it is unused. Underscore-prefixed to
+  // satisfy no-unused-vars without changing the signature.
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+    logger.error('Error:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    });
+  });
+
+  // 404 handler
+  app.use((req: Request, res: Response) => {
+    res.status(404).json({
+      success: false,
+      error: 'Route not found',
+    });
+  });
+
+  return app;
+};
