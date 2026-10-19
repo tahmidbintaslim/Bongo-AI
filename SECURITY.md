@@ -17,7 +17,7 @@ Please do not open a public issue. Report it privately through GitHub's private 
 - **Input validation.** Zod schemas validate content create and update bodies, analytics events, and the register and login bodies.
 - **Errors.** `500` responses return a generic message. The error detail is included only when `NODE_ENV=development`.
 - **Secrets in git.** No secrets are committed. `.env` is gitignored and `.env.example` has empty placeholders.
-- **Dependencies.** Known transitive advisories are pinned through `resolutions` in `package.json`.
+- **Dependencies.** Some transitive advisories are pinned through `resolutions` in `package.json` (for example `proxy-addr` under Express and `fast-uri` under the Pinecone client).
 
 ## Not in place
 
@@ -30,6 +30,7 @@ Please do not open a public issue. Report it privately through GitHub's private 
 - **Compliance.** No data residency, GDPR or Bangladesh-specific compliance work has been done. The Terraform region `ap-south-1` is Mumbai, India.
 - **Privacy in logs.** The AI service logs the user id and the first 50 characters of every query.
 - **Prompt injection.** User input goes into the model prompt as is. There is no filtering.
+- **Dependency advisories.** `yarn audit` still reports many high and critical advisories, mostly in the React Native, Electron and webpack toolchains. In the backend path the open ones are `tar` (used when `bcrypt` builds at install time), `fast-xml-parser` (in the AWS SDK that `cohere-ai` bundles) and `path-to-regexp`. Clearing them needs major upgrades.
 - **Security scanning.** `.github/workflows/security.yml` (CodeQL, Trivy, `yarn audit`) is not running and uses outdated action versions.
 
 ## Before any shared deployment
