@@ -14,7 +14,9 @@ export const createApp = (config: ServiceConfig): Application => {
 
   // Middleware
   app.use(helmet());
-  app.use(cors());
+  // Only the listed origins get CORS headers; an empty list blocks every
+  // cross-origin browser request.
+  app.use(cors({ origin: config.corsOrigins.length > 0 ? config.corsOrigins : false }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 

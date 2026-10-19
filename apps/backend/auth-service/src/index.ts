@@ -19,6 +19,10 @@ const start = () => {
     throw error;
   }
 
+  if (config.corsOrigins.length === 0) {
+    logger.warn('CORS_ORIGINS is empty, so browsers on other origins cannot call this service.');
+  }
+
   createApp(config).listen(config.port, () => {
     logger.info(`Auth service listening on port ${config.port}`);
   });

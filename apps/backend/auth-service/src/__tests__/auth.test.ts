@@ -7,12 +7,13 @@ import { loadConfig } from '../config';
 import { ConfigError } from '../utils/env';
 
 const SECRET = 'auth-service-test-secret-0123456789abcdef';
+const ALLOWED_ORIGIN = 'http://localhost:3000';
 
 let server: Server;
 let baseUrl: string;
 
 beforeAll(async () => {
-  const app = createApp(loadConfig({ JWT_SECRET: SECRET }));
+  const app = createApp(loadConfig({ JWT_SECRET: SECRET, CORS_ORIGINS: ALLOWED_ORIGIN }));
   server = await new Promise<Server>(resolve => {
     const listening = app.listen(0, '127.0.0.1', () => resolve(listening));
   });
@@ -114,5 +115,14 @@ describe('GET /api/auth/me', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data).toEqual({ userId: 'u1', email: 'u1@example.com', role: 'student' });
+  });
+});
+
+describe('CORS', () => {
+  it('only echoes origins listed in CORS_ORIGINS', async () => {
+    const allowed = await fetch(`${baseUrl}/health`, { headers: { origin: ALLOWED_ORIGIN } });
+    expect(allowed.headers.get('access-control-allow-origin')).toBe(ALLOWED_ORIGIN);
+    const other = await fetch(`${baseUrl}/health`, { headers: { origin: 'https://evil.example' } });
+    expect(other.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
