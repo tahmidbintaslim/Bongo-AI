@@ -17,7 +17,7 @@ Bongo AI is a Yarn workspaces TypeScript monorepo for a Bengali-first study assi
 | Shared | `packages/shared` | Zod schemas, shared types and small utilities. |
 | UI components | `packages/ui-components` | `Button`, `Card` and `Input` for React Native and React Native Web. |
 
-The backend services have 43 tests (jest) covering authentication, the AI limits and CORS. GitHub Actions is set up to run lint, build and tests on pushes and pull requests to `main`.
+The backend services have jest tests covering authentication, the AI limits and CORS. GitHub Actions is set up to run lint, build and tests on pushes and pull requests to `main`.
 
 ## What is not built yet
 
@@ -95,7 +95,7 @@ Anyone who knows `JWT_SECRET` can mint tokens, so keep it private and do not exp
 
 ## Authentication
 
-Every route except `/health` requires `Authorization: Bearer <token>`. The token must be an HS256 JWT signed with `JWT_SECRET` that carries a `userId` and an `exp` claim. Missing, forged, unsigned, expired and non-expiring tokens get `401`.
+Every route on the ai, content and analytics services, plus `GET /api/auth/me`, requires `Authorization: Bearer <token>`. `/health` is public, and the four account endpoints below answer `501` with or without a token. The token must be an HS256 JWT signed with `JWT_SECRET` that carries a `userId` and an `exp` claim. Missing, forged, unsigned, expired and non-expiring tokens get `401`.
 
 `POST /api/auth/register`, `/login`, `/refresh` and `/logout` return `501` until a user store exists. They used to accept any email with the password `password123` and sign tokens with a fallback secret; that code is gone. Without a token store there is no server-side logout: a token stays valid until it expires, or until you rotate `JWT_SECRET`, which invalidates every token.
 

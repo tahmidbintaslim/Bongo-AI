@@ -13,7 +13,7 @@ Every service also serves `GET /health` without authentication.
 
 ## Authentication
 
-Every route below needs an access token:
+Every route below needs an access token, except register, login, refresh and logout, which answer `501` without one:
 
 ```
 Authorization: Bearer <access_token>
