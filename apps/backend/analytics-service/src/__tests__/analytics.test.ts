@@ -63,6 +63,28 @@ describe('/api/analytics authentication', () => {
     expect(stats.status).toBe(200);
     expect((await stats.json()).data.totalEvents).toBe(1);
   });
+
+  it('records the token user, not a userId sent in the body', async () => {
+    const res = await fetch(`${baseUrl}/api/analytics/events`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...auth('u2') },
+      body: JSON.stringify({ userId: 'victim', eventType: 'quiz_completed' }),
+    });
+    expect(res.status).toBe(201);
+    expect((await res.json()).data.userId).toBe('u2');
+
+    const victim = await fetch(`${baseUrl}/api/analytics/stats/user/victim`, { headers: auth('u2') });
+    expect((await victim.json()).data.totalEvents).toBe(0);
+
+    // userId is optional now that the token supplies it.
+    const withoutUserId = await fetch(`${baseUrl}/api/analytics/events`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...auth('u2') },
+      body: JSON.stringify({ eventType: 'lesson_viewed' }),
+    });
+    expect(withoutUserId.status).toBe(201);
+    expect((await withoutUserId.json()).data.userId).toBe('u2');
+  });
 });
 
 describe('CORS', () => {

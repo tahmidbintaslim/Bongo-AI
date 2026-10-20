@@ -137,12 +137,12 @@ Any valid token can change or delete any item.
 
 Stored in memory; data is lost on restart.
 
-- `POST /analytics/events`: body `userId`, `eventType`, optional `eventData`, `timestamp` (ISO 8601), `sessionId`, `metadata`. Returns `201`.
+- `POST /analytics/events`: body `eventType`, optional `eventData`, `timestamp` (ISO 8601), `sessionId`, `metadata`. Returns `201`. The event is recorded under the token's `userId`; a `userId` in the body is ignored.
 - `GET /analytics/events`: query `userId`, `eventType`, `startDate`, `endDate`, `limit` (default 100).
 - `GET /analytics/stats/user/:userId`: event count and breakdown for one user.
 - `GET /analytics/stats/aggregate`: totals, breakdown and the 10 most active users.
 
-`userId` comes from the request body, and any valid token can read every user's events.
+Any valid token can read every user's events.
 
 ## Errors and status codes
 

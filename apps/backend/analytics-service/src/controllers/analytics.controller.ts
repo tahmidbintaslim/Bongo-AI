@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('analytics-controller');
@@ -22,7 +23,9 @@ export const trackEvent = async (req: Request, res: Response) => {
     
     const event: AnalyticsEvent = {
       id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      userId: eventData.userId,
+      // Record the verified token's user, not a userId field in the body, so
+      // one token holder cannot log events as another user.
+      userId: (req as AuthenticatedRequest).user!.userId,
       eventType: eventData.eventType,
       eventData: eventData.eventData,
       timestamp: eventData.timestamp ? new Date(eventData.timestamp) : new Date(),

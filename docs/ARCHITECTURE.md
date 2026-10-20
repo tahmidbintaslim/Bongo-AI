@@ -54,7 +54,7 @@ Middleware order on `/api/ai`: `requireAuth`, then the per-user rate limiter, th
 ### Analytics service (port 4004)
 
 - `POST /api/analytics/events`, `GET /api/analytics/events`, `GET /api/analytics/stats/user/:userId`, `GET /api/analytics/stats/aggregate`.
-- Stored in an array in process memory. The event's `userId` comes from the request body, not the token.
+- Stored in an array in process memory. The event's `userId` comes from the verified token; a `userId` in the body is ignored.
 
 ### API gateway (port 4000)
 

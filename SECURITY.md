@@ -22,7 +22,7 @@ Please do not open a public issue. Report it privately through GitHub's private 
 ## Not in place
 
 - **Accounts and sessions.** There is no user store, so there is no password storage, refresh-token rotation or server-side logout. A token stays valid until it expires, or until `JWT_SECRET` is rotated, which invalidates every token.
-- **Authorization.** Any valid token can read, change and delete all content and read every user's analytics. Analytics events accept any `userId` in the body. There are no roles or ownership checks.
+- **Authorization.** Any valid token can read, change and delete all content and read every user's analytics. There are no roles or ownership checks.
 - **Persistence and encryption at rest.** Content and analytics live in process memory. No service connects to Postgres, Redis or MongoDB.
 - **Shared rate limits.** Counters are in memory per process, so they reset on restart and are not shared between instances. Behind the gateway or another proxy, the per-IP limits see the proxy's address because `trust proxy` is not configured.
 - **Containers.** The Dockerfiles have no non-root `USER`, and the service images do not build today.
