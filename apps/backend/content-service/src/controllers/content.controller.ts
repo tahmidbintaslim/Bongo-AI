@@ -169,6 +169,9 @@ export const updateContent = async (req: Request, res: Response) => {
       ...updates,
       id: content.id, // Prevent ID from being updated
       createdAt: content.createdAt, // Prevent createdAt from being updated
+      // The validator does not strip unknown keys, so a body could carry
+      // createdBy; keep the value taken from the creator's token.
+      createdBy: content.createdBy,
       updatedAt: new Date(),
     };
 

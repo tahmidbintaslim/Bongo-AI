@@ -49,7 +49,7 @@ Middleware order on `/api/ai`: `requireAuth`, then the per-user rate limiter, th
 ### Content service (port 4002)
 
 - `POST /api/content`, `GET /api/content` (filters: `category`, `level`, `language`, `tags`, `search`; pagination: `page`, `limit` up to 100), `GET`, `PUT` and `DELETE /api/content/:id`.
-- Stored in a `Map` in process memory. `createdBy` is the `userId` from the token.
+- Stored in a `Map` in process memory. `createdBy` is the `userId` from the creator's token; updates cannot change it.
 
 ### Analytics service (port 4004)
 

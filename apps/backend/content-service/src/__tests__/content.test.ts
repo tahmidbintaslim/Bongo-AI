@@ -66,6 +66,26 @@ describe('/api/content authentication', () => {
     expect(list.status).toBe(200);
     expect((await list.json()).data).toHaveLength(1);
   });
+
+  it('keeps createdBy from the token when a body tries to set it', async () => {
+    const created = await fetch(`${baseUrl}/api/content`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...auth('teacher-2') },
+      body: JSON.stringify({ ...lesson, createdBy: 'spoofed' }),
+    });
+    const { data } = await created.json();
+    expect(data.createdBy).toBe('teacher-2');
+
+    const updated = await fetch(`${baseUrl}/api/content/${data.id}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', ...auth('student-2') },
+      body: JSON.stringify({ title: 'নতুন শিরোনাম', createdBy: 'student-2' }),
+    });
+    expect(updated.status).toBe(200);
+    const after = (await updated.json()).data;
+    expect(after.title).toBe('নতুন শিরোনাম');
+    expect(after.createdBy).toBe('teacher-2');
+  });
 });
 
 describe('CORS', () => {

@@ -127,7 +127,7 @@ Returns the two hardcoded documents, in Bengali or English depending on `languag
 
 Stored in memory; data is lost on restart.
 
-- `POST /content`: create. Body: `title` (1 to 200 characters), `body`, `category`, optional `description`, `tags`, `level` (`beginner`, `intermediate`, `advanced`), `language` (`bn` or `en`), `metadata`. Returns `201` with the item; `createdBy` is the token's `userId`.
+- `POST /content`: create. Body: `title` (1 to 200 characters), `body`, `category`, optional `description`, `tags`, `level` (`beginner`, `intermediate`, `advanced`), `language` (`bn` or `en`), `metadata`. Returns `201` with the item; `createdBy` is the token's `userId`, and `PUT` cannot change it.
 - `GET /content`: list. Query: `category`, `level`, `language`, `tags` (repeat the parameter for several), `search`, `page`, `limit` (default 20, max 100).
 - `GET /content/:id`, `PUT /content/:id`, `DELETE /content/:id`.
 
