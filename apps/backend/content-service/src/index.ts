@@ -1,62 +1,31 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
+// Load .env before any other module reads process.env.
+import 'dotenv/config';
+import { createApp } from './app';
+import { loadConfig } from './config';
+import { ConfigError } from './utils/env';
 import { createLogger } from './utils/logger';
-import contentRoutes from './routes/content.routes';
 
-dotenv.config();
-
-const app: Application = express();
-const PORT = process.env.PORT || 4002;
 const logger = createLogger('content-service');
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const start = () => {
+  let config;
+  try {
+    config = loadConfig(process.env);
+  } catch (error) {
+    if (error instanceof ConfigError) {
+      logger.error(`Refusing to start: ${error.message}`);
+      process.exit(1);
+    }
+    throw error;
+  }
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
-  message: 'Too many requests from this IP, please try again later.',
-});
-app.use('/api/', limiter);
+  if (config.corsOrigins.length === 0) {
+    logger.warn('CORS_ORIGINS is empty, so browsers on other origins cannot call this service.');
+  }
 
-// Routes
-app.use('/api/content', contentRoutes);
-
-// Health check
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', service: 'content-service' });
-});
-
-// Error handling
-// Express identifies error-handling middleware by arity, so the fourth
-// parameter must stay even though it is unused. Underscore-prefixed to
-// satisfy no-unused-vars without changing the signature.
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  logger.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  createApp(config).listen(config.port, () => {
+    logger.info(`Content service listening on port ${config.port}`);
   });
-});
+};
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    success: false,
-    error: 'Route not found',
-  });
-});
-
-app.listen(PORT, () => {
-  logger.info(`Content service listening on port ${PORT}`);
-});
-
-export default app;
+start();

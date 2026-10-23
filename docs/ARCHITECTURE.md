@@ -1,244 +1,95 @@
-# Bongo AI Architecture
+# Architecture
 
-## System Overview
+Status: prototype. This page describes the code as it is today. Parts that are planned but not built are listed at the end.
 
-Bongo AI is a multi-tier, microservices-based application designed to provide educational assistance to students in Bangladesh with a focus on Bengali language support.
+## Overview
 
-## Architecture Layers
+```
+Clients (none of them call the API yet)
+  apps/web       React Native Web, one static welcome screen
+  apps/mobile    React Native screens, no android/ or ios/ project
+  apps/desktop   Electron shell around the web build
 
-### 1. Frontend Layer
+API gateway :4000 (optional; proxied POST and PUT hang, see README)
+  |
+  +-- auth-service      :4001   /api/auth       token check for /me, other routes 501
+  +-- content-service   :4002   /api/content    in-memory lesson CRUD
+  +-- ai-service        :4003   /api/ai         tutor prompts -> OpenAI or Cohere
+  +-- analytics-service :4004   /api/analytics  in-memory event tracking
 
-#### Mobile (React Native)
-- **iOS/Android Apps**: Native mobile experience
-- **State Management**: Redux/Zustand for global state
-- **Offline Support**: Cache-first strategy with Redux Persist
-- **i18n**: Bengali (bn-BD) as primary language
+docker-compose: Postgres, Redis and MongoDB containers that no service uses
+```
 
-#### Web (React Native Web)
-- **Responsive Design**: Works on all screen sizes
-- **Progressive Web App**: Installable, offline-capable
-- **Same Codebase**: Shares components with mobile
+## Services
 
-#### Desktop (Electron/Tauri)
-- **Cross-platform**: Windows, macOS, Linux
-- **Native Features**: File system access, notifications
-- **Lightweight**: Tauri for smaller bundle size
+Each backend service is an Express 4 app in `apps/backend/<name>` with the same layout:
 
-### 2. Backend Layer (Microservices)
+- `src/index.ts` loads `.env` first, validates the configuration with `loadConfig()` and exits with a clear message if it is wrong, then listens.
+- `src/app.ts` exports `createApp(config)`. The tests use it to start the app on a random port.
+- `src/config.ts` reads environment variables through the helpers in `src/utils/env.ts`.
+- `src/middleware/auth.middleware.ts` verifies Bearer JWTs. The gateway has no copy; it does not check tokens and leaves that to the services.
 
-#### API Gateway
-- **Port**: 4000
-- **Purpose**: Single entry point, routing, rate limiting
-- **Technologies**: Express.js, http-proxy-middleware
+The auth middleware and the env helpers are identical copies in each service, like the logger and validation files. Change them together until the services merge into one API.
 
-#### Auth Service
-- **Port**: 4001
-- **Purpose**: User authentication, authorization
-- **Technologies**: Express.js, JWT, bcrypt, PostgreSQL, Redis
-- **Features**:
-  - User registration/login
-  - Token management
-  - Session handling
+### AI service (port 4003)
 
-#### Content Service
-- **Port**: 4002
-- **Purpose**: Educational content management
-- **Technologies**: Express.js, PostgreSQL, MongoDB
-- **Features**:
-  - Lesson management
-  - Quiz creation
-  - Video/article storage
-  - Bengali content support
+- `POST /api/ai/query`: takes `query` and `language` (`bn` or `en`). It calls `VectorStoreService.search()`, builds a Bengali or English tutor prompt with the results as numbered context, and sends it to OpenAI chat completions (`OPENAI_MODEL`, default `gpt-3.5-turbo`, up to 1000 tokens) or to Cohere `generate`. It returns `{ response, sources }`.
+- `POST /api/ai/embed`: returns an embedding from OpenAI `text-embedding-ada-002` or Cohere `embed-multilingual-v3.0`.
+- `POST /api/ai/search`: returns the search results directly.
+- Search is mocked: it returns the same two hardcoded documents for every query. `VectorStoreService.insert()` can upsert to Pinecone, but no route calls it.
 
-#### AI Service
-- **Port**: 4003
-- **Purpose**: AI-powered assistance with RAG
-- **Technologies**: Express.js, OpenAI/Cohere, Pinecone/Weaviate
-- **Features**:
-  - Bengali language understanding
-  - Context-aware responses
-  - Vector search
-  - Embeddings generation
+Middleware order on `/api/ai`: `requireAuth`, then the per-user rate limiter, then `express.json` with the body cap, then the routes. Unauthenticated requests are rejected before their body is read.
 
-#### Analytics Service
-- **Port**: 4004
-- **Purpose**: User analytics and insights
-- **Technologies**: Express.js, PostgreSQL, MongoDB
-- **Features**:
-  - Usage tracking
-  - Performance metrics
-  - Learning progress
-  - Dashboards
+### Auth service (port 4001)
 
-### 3. Data Layer
+- `GET /api/auth/me` returns the claims of the verified token (`userId`, and `email` and `role` when present).
+- `POST /api/auth/register` and `/login` validate their bodies with Zod and then return `501`. `/refresh` and `/logout` return `501`.
+- There is no user store. `pg`, `redis` and `bcrypt` are declared dependencies of the auth service, but nothing imports them.
 
-#### PostgreSQL
-- **Purpose**: Relational data
-- **Data**: Users, structured content, relationships
-- **Version**: 15+
-- **Features**: ACID compliance, complex queries
+### Content service (port 4002)
 
-#### Redis
-- **Purpose**: Caching, session storage
-- **Data**: Temporary data, session tokens
-- **Version**: 7+
-- **Features**: Fast in-memory operations
+- `POST /api/content`, `GET /api/content` (filters: `category`, `level`, `language`, `tags`, `search`; pagination: `page`, `limit` up to 100), `GET`, `PUT` and `DELETE /api/content/:id`.
+- Stored in a `Map` in process memory. `createdBy` is the `userId` from the creator's token; updates cannot change it.
 
-#### MongoDB/Firestore
-- **Purpose**: Unstructured content
-- **Data**: Lessons, articles, user-generated content
-- **Features**: Flexible schema, scalability
+### Analytics service (port 4004)
 
-#### S3/GCS
-- **Purpose**: Media storage
-- **Data**: Images, videos, documents
-- **Features**: CDN integration, encryption
+- `POST /api/analytics/events`, `GET /api/analytics/events`, `GET /api/analytics/stats/user/:userId`, `GET /api/analytics/stats/aggregate`.
+- Stored in an array in process memory. The event's `userId` comes from the verified token; a `userId` in the body is ignored.
 
-#### Vector Store (Pinecone/Weaviate/Chroma)
-- **Purpose**: Semantic search, AI embeddings
-- **Data**: Content embeddings for RAG
-- **Features**: Fast similarity search
+### API gateway (port 4000)
 
-### 4. Infrastructure Layer
+Proxies `/api/auth`, `/api/content`, `/api/ai` and `/api/analytics` to the services with `http-proxy-middleware`, and forwards the `Authorization` header. It parses JSON before proxying, which consumes the body, so POST and PUT requests hang. `http-proxy-middleware` is not listed in its own `package.json` and resolves through workspace hoisting.
 
-#### Containerization (Docker)
-- All services containerized
-- Docker Compose for local development
-- Consistent environments
+## Authentication model
 
-#### Orchestration (Kubernetes - Optional)
-- Production deployment
-- Auto-scaling
-- High availability
+- Tokens are HS256 JWTs signed with `JWT_SECRET`, with `userId` and `exp` claims. All services that check tokens share the same secret.
+- Nothing issues tokens yet. For local development you sign one with the secret (see the README quick start).
+- There is no refresh token, no revocation and no logout on the server.
 
-#### Infrastructure as Code (Terraform)
-- AWS infrastructure
-- ap-south-1 region (Mumbai) for Bangladesh data residency
-- VPC, subnets, security groups
-- RDS, ElastiCache, S3
+## Limits
 
-#### CI/CD (GitHub Actions)
-- Automated testing
-- Docker image building
-- Deployment pipelines
-- Security scanning
+- `/api/ai/*`: per user, 20 requests per 15 minutes by default, keyed by the token's `userId`. JSON bodies over 16 KB get `413`.
+- auth, content and analytics: per IP, 100 requests per 15 minutes by default.
+- gateway: per IP, 100 requests per 15 minutes.
+- All counters are in memory per process.
 
-### 5. Observability
+## Shared packages
 
-#### Logging
-- Winston for structured logging
-- JSON format
-- Centralized log aggregation
+- `packages/i18n`: bn-BD and en-US strings and an i18next setup with bn-BD as the default and en-US as the fallback. The mobile app uses it; the web app does not yet.
+- `packages/shared`: Zod schemas (user, content, AI query, analytics event), shared types and small utilities. The services do not import it yet.
+- `packages/ui-components`: `Button`, `Card` and `Input` for React Native and React Native Web. The web app uses `Button` and `Card`.
 
-#### Metrics
-- Prometheus-compatible
-- Custom business metrics
-- Performance monitoring
+## Infrastructure
 
-#### Tracing
-- OpenTelemetry
-- Distributed tracing
-- Request flow visualization
+- `docker-compose.yml` defines Postgres 15, Redis 7 and MongoDB 6 with development passwords, plus the five services. The services require `JWT_SECRET` and pass `CORS_ORIGINS`. The service images do not build today.
+- `infrastructure/terraform` defines a VPC, subnets, RDS Postgres, ElastiCache Redis and an S3 bucket in `ap-south-1` (Mumbai, India). It defines no compute for the services.
+- `.github/workflows/ci-cd.yml` installs with the frozen lockfile, lints, builds the packages, the five services and the web and desktop shells, and runs the tests on Node 22.
 
-## Data Flow
+## Not built yet
 
-### User Query Flow
-1. User submits query (Bengali or English)
-2. Frontend sends to API Gateway
-3. Gateway routes to AI Service
-4. AI Service:
-   - Creates embedding of query
-   - Searches vector store for relevant content
-   - Builds context from search results
-   - Sends to OpenAI/Cohere with Bengali prompt
-   - Returns AI-generated response
-5. Response sent back to frontend
-6. Analytics Service logs interaction
-
-### Authentication Flow
-1. User submits credentials
-2. API Gateway routes to Auth Service
-3. Auth Service:
-   - Validates credentials
-   - Generates JWT tokens
-   - Stores session in Redis
-   - Returns tokens to user
-4. Subsequent requests include JWT
-5. Gateway validates token via Auth Service
-
-### Content Retrieval Flow
-1. User requests content
-2. Gateway checks cache (Redis)
-3. If cache miss:
-   - Route to Content Service
-   - Fetch from PostgreSQL/MongoDB
-   - Cache result
-4. Return content to user
-5. Analytics Service tracks access
-
-## Security
-
-### Data Residency
-- All data stored in ap-south-1 (Mumbai)
-- Compliant with Bangladesh regulations
-- Data sovereignty maintained
-
-### Encryption
-- TLS 1.3 for data in transit
-- AES-256 for data at rest
-- Database encryption enabled
-
-### Authentication
-- JWT with secure secrets
-- Refresh token rotation
-- Session invalidation
-
-### API Security
-- Rate limiting
-- CORS configuration
-- Helmet.js security headers
-- Input validation with Zod
-
-## Scalability
-
-### Horizontal Scaling
-- Stateless services
-- Load balancer distribution
-- Auto-scaling based on metrics
-
-### Caching Strategy
-- Redis for hot data
-- CDN for static assets
-- Database query caching
-
-### Database Optimization
-- Indexed queries
-- Connection pooling
-- Read replicas for scaling
-
-## Offline Support
-
-### Mobile/Desktop
-- Local SQLite database
-- Service Workers (Web)
-- Sync when online
-- Conflict resolution
-
-### Data Sync
-- Queue offline actions
-- Batch sync on connection
-- Progressive enhancement
-
-## Internationalization
-
-### Bengali Support
-- UTF-8 encoding
-- Bengali fonts
-- RTL/LTR handling
-- Number formatting
-- Date/time formatting
-
-### Fallback Strategy
-- bn-BD (primary)
-- en-US (fallback)
-- Dynamic language switching
+- Real retrieval: an ingest step (chunk, embed, store) and a vector search that returns cited sources from your own content.
+- A user store with hashed passwords, refresh tokens and revocation, then roles and ownership checks.
+- Persistence for content and analytics.
+- A chat UI in the web app that calls the API.
+- Working Docker images, and a gateway that forwards request bodies.
+- Mobile and desktop apps that run.

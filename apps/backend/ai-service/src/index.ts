@@ -1,28 +1,32 @@
-import express, { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import dotenv from 'dotenv';
+// Load .env before any other module reads process.env (the AI and vector
+// store clients read their keys when they are constructed).
+import 'dotenv/config';
+import { createApp } from './app';
+import { loadConfig } from './config';
+import { ConfigError } from './utils/env';
 import { createLogger } from './utils/logger';
-import aiRoutes from './routes/ai.routes';
 
-dotenv.config();
-
-const app: Application = express();
-const PORT = process.env.PORT || 4003;
 const logger = createLogger('ai-service');
 
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+const start = () => {
+  let config;
+  try {
+    config = loadConfig(process.env);
+  } catch (error) {
+    if (error instanceof ConfigError) {
+      logger.error(`Refusing to start: ${error.message}`);
+      process.exit(1);
+    }
+    throw error;
+  }
 
-app.use('/api/ai', aiRoutes);
+  if (config.corsOrigins.length === 0) {
+    logger.warn('CORS_ORIGINS is empty, so browsers on other origins cannot call this service.');
+  }
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'ai-service' });
-});
+  createApp(config).listen(config.port, () => {
+    logger.info(`AI service listening on port ${config.port}`);
+  });
+};
 
-app.listen(PORT, () => {
-  logger.info(`AI service listening on port ${PORT}`);
-});
-
-export default app;
+start();

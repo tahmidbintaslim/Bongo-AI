@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 export const eventSchema = z.object({
-  userId: z.string().min(1),
+  // Accepted so existing callers keep working, but ignored: the event is
+  // recorded under the token's userId.
+  userId: z.string().min(1).optional(),
   eventType: z.string().min(1),
   eventData: z.record(z.any()).optional(),
   timestamp: z.string().datetime().optional(),

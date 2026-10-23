@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { RAGService } from '../services/rag.service';
 import { VectorStoreService } from '../services/vector-store.service';
 import { createLogger } from '../utils/logger';
@@ -10,9 +11,11 @@ const vectorStoreService = new VectorStoreService();
 export class AIController {
   async query(req: Request, res: Response) {
     try {
-      const { query, userId, language = 'bn' } = req.body;
+      const { query, language = 'bn' } = req.body;
+      // Trust the verified token, not a userId field in the body.
+      const userId = (req as AuthenticatedRequest).user?.userId;
 
-      if (!query) {
+      if (typeof query !== 'string' || !query.trim()) {
         return res.status(400).json({
           success: false,
           error: 'Query is required',
@@ -55,7 +58,9 @@ export class AIController {
     try {
       const { text } = req.body;
 
-      if (!text) {
+      // A string only: an array would be embedded as a batch, multiplying
+      // the provider cost of one rate-limited request.
+      if (typeof text !== 'string' || !text.trim()) {
         return res.status(400).json({
           success: false,
           error: 'Text is required',
@@ -84,7 +89,7 @@ export class AIController {
     try {
       const { query, language = 'bn', limit = 10 } = req.body;
 
-      if (!query) {
+      if (typeof query !== 'string' || !query.trim()) {
         return res.status(400).json({
           success: false,
           error: 'Query is required',

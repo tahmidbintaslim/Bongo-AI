@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> **Status: not verified.** This is an earlier plan, kept for reference. Parts of it describe files and scripts that do not exist (`docker-compose.prod.yml`, `infrastructure/k8s/`, `yarn ios:build`, `yarn android:build`), the service images do not build, and the Terraform defines no compute. `ap-south-1` is Mumbai, India; no data residency or compliance work has been done. Environment variables have changed: see [`.env.example`](../.env.example). For what runs today, see the [README](../README.md).
+
 ## Prerequisites
 
 - Docker & Docker Compose

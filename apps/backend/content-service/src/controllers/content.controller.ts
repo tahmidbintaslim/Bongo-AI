@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('content-controller');
@@ -31,7 +32,7 @@ export const createContent = async (req: Request, res: Response) => {
       ...contentData,
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: (req as any).user?.id,
+      createdBy: (req as AuthenticatedRequest).user?.userId,
     };
 
     contentStore.set(id, content);
@@ -168,6 +169,9 @@ export const updateContent = async (req: Request, res: Response) => {
       ...updates,
       id: content.id, // Prevent ID from being updated
       createdAt: content.createdAt, // Prevent createdAt from being updated
+      // The validator does not strip unknown keys, so a body could carry
+      // createdBy; keep the value taken from the creator's token.
+      createdBy: content.createdBy,
       updatedAt: new Date(),
     };
 
