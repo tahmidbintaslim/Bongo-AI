@@ -47,7 +47,7 @@
     "diff": ">=4.0.4 <5",
     "fast-uri": ">=3.1.7 <4",
     "flatted": ">=3.4.2 <4",
-    "follow-redirects": ">=1.16.0 <2",
+    "follow-redirects": ">=1.16.2 <2",
     "handlebars": ">=4.7.9 <5",
     "http-proxy-middleware": ">=2.0.10 <3",
     "joi": ">=17.13.4 <18",
