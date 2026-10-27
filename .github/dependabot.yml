@@ -1,13 +1,27 @@
+# One monthly PR per ecosystem. Security fixes arrive as one grouped PR.
+# Major upgrades are paused: they get decided per product, not merged on autopilot.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    open-pull-requests-limit: 3
     groups:
-      minor-and-patch:
+      npm-minor-and-patch:
+        applies-to: version-updates
+        patterns: ["*"]
         update-types: [minor, patch]
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
