@@ -1,43 +1,43 @@
+<div align="center">
+
 # Bongo AI
+
+**A Bengali-first study assistant for students in Bangladesh: Bengali and English tutor prompts behind small Express services.**
+
+[![CI](https://github.com/tahmidbintaslim/Bongo-AI/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/tahmidbintaslim/Bongo-AI/actions/workflows/ci-cd.yml)
+[![CodeQL](https://github.com/tahmidbintaslim/Bongo-AI/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tahmidbintaslim/Bongo-AI/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/tahmidbintaslim/Bongo-AI/main)](https://github.com/tahmidbintaslim/Bongo-AI/commits/main)
+[![Status: prototype](https://img.shields.io/badge/status-prototype-orange.svg)](#status-and-roadmap)
+[![GitHub stars](https://img.shields.io/github/stars/tahmidbintaslim/Bongo-AI?style=flat)](https://github.com/tahmidbintaslim/Bongo-AI/stargazers)
+
+</div>
 
 **Status: prototype.** There is no live demo. The backend services run locally, but retrieval is mocked, accounts are not implemented and there is no chat UI yet. See [What is not built yet](#what-is-not-built-yet).
 
 Bongo AI is a Yarn workspaces TypeScript monorepo for a Bengali-first study assistant. Today it contains Express services with Bengali and English tutor prompts, bn-BD and en-US UI strings, and early web, mobile and desktop shells.
 
-## What works today
+## Contents
 
-| Part | Path | State |
-| --- | --- | --- |
-| AI service | `apps/backend/ai-service` (port 4003) | `POST /api/ai/query` sends a Bengali or English tutor prompt to OpenAI (`gpt-3.5-turbo` by default) or Cohere. `POST /api/ai/embed` returns an embedding. `POST /api/ai/search` returns fixtures (see below). Requires a JWT, rate-limited per user, 16 KB body cap. |
-| Auth service | `apps/backend/auth-service` (port 4001) | `GET /api/auth/me` returns the claims of a verified token. Register, login, refresh and logout return `501 Not Implemented`. |
-| Content service | `apps/backend/content-service` (port 4002) | Create, read, update, delete and list lessons with filters and pagination. Requires a JWT. Stored in memory, so data is lost on restart. |
-| Analytics service | `apps/backend/analytics-service` (port 4004) | Track events and read per-user and aggregate counts. Requires a JWT. Stored in memory. |
-| API gateway | `apps/backend/api-gateway` (port 4000) | Proxies to the four services. GET requests work; proxied POST and PUT requests hang (see [Known issues](#known-issues)). |
-| i18n | `packages/i18n` | bn-BD and en-US strings with i18next. bn-BD is the default. |
-| Shared | `packages/shared` | Zod schemas, shared types and small utilities. |
-| UI components | `packages/ui-components` | `Button`, `Card` and `Input` for React Native and React Native Web. |
-
-The backend services have jest tests covering authentication, the AI limits and CORS. GitHub Actions is set up to run lint, build and tests on pushes and pull requests to `main`.
-
-## What is not built yet
-
-- **Retrieval.** `VectorStoreService.search()` returns the same two hardcoded documents for every query ("Bangladesh is a country in South Asia..." and "Mathematics is an important subject..."). `/query` sends them to the model as context and lists them as sources, so answers are not grounded in your content. Nothing calls the Pinecone `insert()`. Weaviate and Chroma are declared dependencies but are not used.
-- **Accounts.** There is no user store. No service connects to Postgres, Redis or MongoDB, so the auth service cannot register users, check passwords, issue, refresh or revoke tokens. For local development you mint a token yourself (see [Quick start](#quick-start)).
-- **Authorization.** Any valid token can read, change and delete all content and read every user's analytics. There are no roles or ownership checks.
-- **Chat UI.** The web app (`apps/web`) renders one welcome card and its "শুরু করুন" (Get started) button does nothing. No client calls the API.
-- **Mobile.** `apps/mobile` has two placeholder screens with no forms and no API calls. There is no `android/` or `ios/` project, so it cannot run on a device.
-- **Desktop.** `apps/desktop` is an Electron shell. Its production build loads the wrong path and does not package the web bundle. There is no Tauri app.
-- **Docker.** `docker-compose.yml` defines Postgres, Redis and MongoDB containers that no service uses, and the service images do not build: the content and analytics Dockerfiles copy files from outside their build context, and the ai, auth and gateway Dockerfiles run `npm install`, which cannot fetch the unpublished `@bongo-ai/shared` package.
-- **Infrastructure.** Terraform in `infrastructure/terraform` defines a VPC, RDS, ElastiCache and S3 in `ap-south-1` (Mumbai, India). It defines no compute, so nothing in this repo deploys the services.
-- **Offline mode, metrics, tracing, data residency or compliance work.** None of these exist.
+- [Quick start](#quick-start)
+- [Status and roadmap](#status-and-roadmap)
+- [Configuration](#configuration)
+- [Authentication](#authentication)
+- [Development](#development)
+- [Project structure](#project-structure)
+- [Known issues](#known-issues)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
 
 ## Quick start
 
 Requirements: Node.js 22 (CI uses 22) and Yarn 1.22. Run every command from the repo root.
 
 ```bash
-git clone https://github.com/tahmidbintaslim/bongo-ai.git
-cd bongo-ai
+git clone https://github.com/tahmidbintaslim/Bongo-AI.git
+cd Bongo-AI
 yarn install --frozen-lockfile
 ```
 
@@ -79,6 +79,49 @@ Without an OpenAI or Cohere key, `/query` and `/embed` return `500` with `"Faile
 
 Anyone who knows `JWT_SECRET` can mint tokens, so keep it private and do not expose these services to the internet with self-minted tokens.
 
+## Status and roadmap
+
+Bongo AI is a prototype. The backend services start and answer locally, but nothing is deployed, there is no live demo, and it is not ready for real student data.
+
+### What works today
+
+| Part | Path | State |
+| --- | --- | --- |
+| AI service | `apps/backend/ai-service` (port 4003) | `POST /api/ai/query` sends a Bengali or English tutor prompt to OpenAI (`gpt-3.5-turbo` by default) or Cohere. `POST /api/ai/embed` returns an embedding. `POST /api/ai/search` returns fixtures (see below). Requires a JWT, rate-limited per user, 16 KB body cap. |
+| Auth service | `apps/backend/auth-service` (port 4001) | `GET /api/auth/me` returns the claims of a verified token. Register, login, refresh and logout return `501 Not Implemented`. |
+| Content service | `apps/backend/content-service` (port 4002) | Create, read, update, delete and list lessons with filters and pagination. Requires a JWT. Stored in memory, so data is lost on restart. |
+| Analytics service | `apps/backend/analytics-service` (port 4004) | Track events and read per-user and aggregate counts. Requires a JWT. Stored in memory. |
+| API gateway | `apps/backend/api-gateway` (port 4000) | Proxies to the four services. GET requests work; proxied POST and PUT requests hang (see [Known issues](#known-issues)). |
+| i18n | `packages/i18n` | bn-BD and en-US strings with i18next. bn-BD is the default. |
+| Shared | `packages/shared` | Zod schemas, shared types and small utilities. |
+| UI components | `packages/ui-components` | `Button`, `Card` and `Input` for React Native and React Native Web. |
+
+The backend services have jest tests covering authentication, the AI limits and CORS. GitHub Actions is set up to run lint, build and tests on pushes and pull requests to `main`.
+
+### What is not built yet
+
+- **Retrieval.** `VectorStoreService.search()` returns the same two hardcoded documents for every query ("Bangladesh is a country in South Asia..." and "Mathematics is an important subject..."). `/query` sends them to the model as context and lists them as sources, so answers are not grounded in your content. Nothing calls the Pinecone `insert()`. Weaviate and Chroma are declared dependencies but are not used.
+- **Accounts.** There is no user store. No service connects to Postgres, Redis or MongoDB, so the auth service cannot register users, check passwords, issue, refresh or revoke tokens. For local development you mint a token yourself (see [Quick start](#quick-start)).
+- **Authorization.** Any valid token can read, change and delete all content and read every user's analytics. There are no roles or ownership checks.
+- **Chat UI.** The web app (`apps/web`) renders one welcome card and its "শুরু করুন" (Get started) button does nothing. No client calls the API.
+- **Mobile.** `apps/mobile` has two placeholder screens with no forms and no API calls. There is no `android/` or `ios/` project, so it cannot run on a device.
+- **Desktop.** `apps/desktop` is an Electron shell. Its production build loads the wrong path and does not package the web bundle. There is no Tauri app.
+- **Docker.** `docker-compose.yml` defines Postgres, Redis and MongoDB containers that no service uses, and the service images do not build: the content and analytics Dockerfiles copy files from outside their build context, and the ai, auth and gateway Dockerfiles run `npm install`, which cannot fetch the unpublished `@bongo-ai/shared` package.
+- **Infrastructure.** Terraform in `infrastructure/terraform` defines a VPC, RDS, ElastiCache and S3 in `ap-south-1` (Mumbai, India). It defines no compute, so nothing in this repo deploys the services.
+- **Offline mode, metrics, tracing, data residency or compliance work.** None of these exist.
+
+### Roadmap
+
+The open work below comes from the gaps listed above and in [SECURITY.md](SECURITY.md). It is not a committed order or schedule.
+
+1. Stop the API gateway from consuming request bodies, so POST and PUT work through port 4000.
+2. Add a user store with hashed passwords and refresh-token storage and revocation, so register, login, refresh and logout stop returning `501`.
+3. Add roles and ownership checks to the content and analytics services.
+4. Replace the fixture search in `VectorStoreService.search()` with real retrieval over ingested content.
+5. Give the web app a chat screen that calls the AI service.
+6. Make the service Docker images build, run them as a non-root user, and connect the services to the databases in `docker-compose.yml`.
+7. Native Android and iOS projects for `apps/mobile`, and a working production build for `apps/desktop`.
+
 ## Configuration
 
 | Variable | Used by | Default | Notes |
@@ -109,6 +152,8 @@ yarn workspace @bongo-ai/web build          # webpack production build of the we
 ```
 
 Build the shared packages (`i18n`, `shared`, `ui-components`) before the web app. The root `yarn build` stops at the mobile workspace, which has no build script, so CI builds each workspace explicitly (see [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)).
+
+CodeQL ([`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)) scans the JavaScript and TypeScript code on pushes and pull requests to `main` and once a week.
 
 ## Project structure
 
@@ -148,6 +193,14 @@ bongo-ai/
 - [Security](SECURITY.md): what is in place, what is not, and how to report a problem.
 - [Deployment](docs/DEPLOYMENT.md): an earlier deployment plan that has not been verified.
 - [Contributing](CONTRIBUTING.md)
+
+## Contributing
+
+Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the workflow; bug reports and feature requests use the issue forms. Run `yarn lint`, the CI build loop and `yarn test` before you open a pull request.
+
+## Security
+
+Please report vulnerabilities privately, not in a public issue. [SECURITY.md](SECURITY.md) explains how, and lists what is and is not in place.
 
 ## License
 

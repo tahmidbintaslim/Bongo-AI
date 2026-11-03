@@ -4,7 +4,7 @@ Bongo AI is a prototype. It is not ready for production or for real student data
 
 ## Reporting a vulnerability
 
-Please do not open a public issue. Report it privately through GitHub's private vulnerability reporting on this repository (Security tab, "Report a vulnerability"). If that option is not available, contact the maintainer through [github.com/tahmidbintaslim](https://github.com/tahmidbintaslim). There is no bug bounty.
+Please do not open a public issue. Email **tahmidbintaslimrafi@gmail.com** with what the problem is and where, steps to reproduce it, and what an attacker could do with it. You can also use GitHub's private vulnerability reporting on this repository (Security tab, "Report a vulnerability") if it is enabled. There is no bug bounty.
 
 ## In place
 
@@ -31,7 +31,7 @@ Please do not open a public issue. Report it privately through GitHub's private 
 - **Privacy in logs.** The AI service logs the user id and the first 50 characters of every query.
 - **Prompt injection.** User input goes into the model prompt as is. There is no filtering.
 - **Dependency advisories.** `yarn audit` still reports many high and critical advisories, mostly in the React Native, Electron and webpack toolchains. In the backend path the open ones are `tar` (used when `bcrypt` builds at install time), `fast-xml-parser` (in the AWS SDK that `cohere-ai` bundles) and `path-to-regexp`. Clearing them needs major upgrades.
-- **Security scanning.** `.github/workflows/security.yml` (CodeQL, Trivy, `yarn audit`) is not running and uses outdated action versions.
+- **Security scanning.** CodeQL runs from `.github/workflows/codeql.yml` with pinned actions. The older `.github/workflows/security.yml` (Trivy, `yarn audit` and a CodeQL job of its own) is disabled on GitHub for inactivity and uses outdated action versions.
 
 ## Before any shared deployment
 
