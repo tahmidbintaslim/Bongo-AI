@@ -51,6 +51,8 @@ Thank you for your interest in contributing to Bongo AI! This document provides 
 
 ## Pull Request Process
 
+Bug reports and feature requests use the issue forms, and pull requests start from the pull request template. Report security problems privately as described in [SECURITY.md](SECURITY.md).
+
 1. Update README.md with details of changes if needed
 2. Update documentation for new features
 3. Ensure all tests pass

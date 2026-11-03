@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in Bongo AI does not work as the README describes.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please check the README's "Known issues" and "What is not built yet" first.
+        Do not paste `JWT_SECRET`, API keys or tokens. Security problems go through [SECURITY.md](https://github.com/tahmidbintaslim/Bongo-AI/blob/main/SECURITY.md), not a public issue.
+  - type: dropdown
+    id: workspace
+    attributes:
+      label: Workspace
+      options:
+        - apps/backend/ai-service
+        - apps/backend/auth-service
+        - apps/backend/content-service
+        - apps/backend/analytics-service
+        - apps/backend/api-gateway
+        - apps/web
+        - apps/mobile
+        - apps/desktop
+        - packages/i18n
+        - packages/shared
+        - packages/ui-components
+        - CI, Docker or Terraform
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Commands or requests, for example the `curl` call and its response status.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or logs
+      render: text
+  - type: input
+    id: versions
+    attributes:
+      label: Node.js version, Yarn version and OS
+      placeholder: Node 22.12, Yarn 1.22.22, macOS 15
