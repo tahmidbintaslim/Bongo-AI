@@ -1,8 +1,19 @@
 # Bongo AI
 
-**Status: prototype.** There is no live demo. The backend services run locally, but retrieval is mocked, accounts are not implemented and there is no chat UI yet. See [What is not built yet](#what-is-not-built-yet).
+Bongo AI gives a coaching centre in Bangladesh its own Bangla AI tutor. It answers students only from the centre's notes and model tests, and shows the owner which notes students ask about most and which questions the notes do not answer.
 
-Bongo AI is a Yarn workspaces TypeScript monorepo for a Bengali-first study assistant. Today it contains Express services with Bengali and English tutor prompts, bn-BD and en-US UI strings, and early web, mobile and desktop shells.
+**Status: pilot in progress, built in another repository.** The first pilot runs on the working retrieval engine in [Shikhbo-AI](https://github.com/tahmidbintaslim/Shikhbo-AI#coaching-centre-pilot-bongo-ai): a student page per centre behind a join code, and an owner dashboard. The code in this repository is the earlier prototype. Its services run locally, but retrieval is mocked, accounts are not implemented and there is no chat UI. See [What is not built yet](#what-is-not-built-yet).
+
+## Direction
+
+- **Who it is for.** Owners of openly commercial coaching centres, starting with admission and SSC/HSC centres. The owner buys; students use it.
+- **What it promises.** A tutor under the centre's own name that answers from the centre's material at any hour, and a weekly view of what its batches do not understand.
+- **What stays private.** Each centre's notes are used only for that centre's students.
+- **What moves here later.** Once centres pay for the pilot, it moves into this repository with accounts, billing and PDF upload. From this prototype, the bn-BD strings (`packages/i18n`), the Zod schemas (`packages/shared`) and the analytics event model are the parts to keep. The API gateway, Docker and Terraform files are parked until a paying customer needs them.
+
+## This prototype
+
+This repository is a Yarn workspaces TypeScript monorepo. It contains Express services with Bengali and English tutor prompts, bn-BD and en-US UI strings, and early web, mobile and desktop shells.
 
 ## What works today
 
