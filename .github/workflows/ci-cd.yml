@@ -36,7 +36,7 @@ jobs:
 
       # The root `yarn build` stops at apps/mobile, which has no build script,
       # so each workspace is built explicitly. The packages go first because
-      # the web app resolves @bongo-ai/ui-components from its dist.
+      # the web app resolves @bongo-ai/i18n from its dist.
       - name: Build
         run: |
           for workspace in i18n shared ui-components web desktop \
