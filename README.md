@@ -2,7 +2,7 @@
 
 Bongo AI gives a coaching centre in Bangladesh its own Bangla AI tutor. It answers students only from the centre's notes and model tests, and shows the owner which notes students ask about most and which questions the notes do not answer.
 
-**Status: pilot in progress, built in another repository.** The first pilot runs on the working retrieval engine in [Shikhbo-AI](https://github.com/tahmidbintaslim/Shikhbo-AI#coaching-centre-pilot-bongo-ai): a student page per centre behind a join code, and an owner dashboard. The code in this repository is the earlier prototype. Its services run locally, but retrieval is mocked, accounts are not implemented and there is no chat UI. See [What is not built yet](#what-is-not-built-yet).
+**Status: pilot in progress, built in another repository.** The first pilot runs on the working retrieval engine in [Shikhbo-AI](https://github.com/tahmidbintaslim/Shikhbo-AI#coaching-centre-pilot-bongo-ai): a student page per centre behind a join code, and an owner dashboard. The code in this repository is the earlier prototype. Its services run locally, but retrieval is mocked, accounts are not implemented and there is no chat UI. The web app (`apps/web`) is the public page for centre owners. See [What is not built yet](#what-is-not-built-yet).
 
 ## Direction
 
@@ -13,7 +13,7 @@ Bongo AI gives a coaching centre in Bangladesh its own Bangla AI tutor. It answe
 
 ## This prototype
 
-This repository is a Yarn workspaces TypeScript monorepo. It contains Express services with Bengali and English tutor prompts, bn-BD and en-US UI strings, and early web, mobile and desktop shells.
+This repository is a Yarn workspaces TypeScript monorepo. It contains Express services with Bengali and English tutor prompts, bn-BD and en-US UI strings, a public landing page, and early mobile and desktop shells.
 
 ## What works today
 
@@ -24,9 +24,10 @@ This repository is a Yarn workspaces TypeScript monorepo. It contains Express se
 | Content service | `apps/backend/content-service` (port 4002) | Create, read, update, delete and list lessons with filters and pagination. Requires a JWT. Stored in memory, so data is lost on restart. |
 | Analytics service | `apps/backend/analytics-service` (port 4004) | Track events and read per-user and aggregate counts. Requires a JWT. Stored in memory. |
 | API gateway | `apps/backend/api-gateway` (port 4000) | Proxies to the four services. GET requests work; proxied POST and PUT requests hang (see [Known issues](#known-issues)). |
+| Landing page | `apps/web` | One static page for centre owners, in Bangla with an English switch: what the tutor does, the three steps, a sample of the owner's weekly view marked as sample data, and what is not built. "Request a pilot" opens a GitHub issue in this repository. It calls no API. |
 | i18n | `packages/i18n` | bn-BD and en-US strings with i18next. bn-BD is the default. |
 | Shared | `packages/shared` | Zod schemas, shared types and small utilities. |
-| UI components | `packages/ui-components` | `Button`, `Card` and `Input` for React Native and React Native Web. |
+| UI components | `packages/ui-components` | `Button`, `Card` and `Input` for React Native. The web page does not use them. |
 
 The backend services have jest tests covering authentication, the AI limits and CORS. GitHub Actions is set up to run lint, build and tests on pushes and pull requests to `main`.
 
@@ -35,7 +36,7 @@ The backend services have jest tests covering authentication, the AI limits and 
 - **Retrieval.** `VectorStoreService.search()` returns the same two hardcoded documents for every query ("Bangladesh is a country in South Asia..." and "Mathematics is an important subject..."). `/query` sends them to the model as context and lists them as sources, so answers are not grounded in your content. Nothing calls the Pinecone `insert()`. Weaviate and Chroma are declared dependencies but are not used.
 - **Accounts.** There is no user store. No service connects to Postgres, Redis or MongoDB, so the auth service cannot register users, check passwords, issue, refresh or revoke tokens. For local development you mint a token yourself (see [Quick start](#quick-start)).
 - **Authorization.** Any valid token can read, change and delete all content and read every user's analytics. There are no roles or ownership checks.
-- **Chat UI.** The web app (`apps/web`) renders one welcome card and its "শুরু করুন" (Get started) button does nothing. No client calls the API.
+- **Chat UI.** The web app (`apps/web`) is a landing page only. No client in this repository calls the API.
 - **Mobile.** `apps/mobile` has two placeholder screens with no forms and no API calls. There is no `android/` or `ios/` project, so it cannot run on a device.
 - **Desktop.** `apps/desktop` is an Electron shell. Its production build loads the wrong path and does not package the web bundle. There is no Tauri app.
 - **Docker.** `docker-compose.yml` defines Postgres, Redis and MongoDB containers that no service uses, and the service images do not build: the content and analytics Dockerfiles copy files from outside their build context, and the ai, auth and gateway Dockerfiles run `npm install`, which cannot fetch the unpublished `@bongo-ai/shared` package.
@@ -116,10 +117,10 @@ Every route on the ai, content and analytics services, plus `GET /api/auth/me`, 
 yarn lint                                   # ESLint in every workspace
 yarn test                                   # jest in every workspace
 yarn workspace @bongo-ai/ai-service build   # tsc for one workspace
-yarn workspace @bongo-ai/web build          # webpack production build of the web shell
+yarn workspace @bongo-ai/web build          # webpack production build of the landing page, into apps/web/dist
 ```
 
-Build the shared packages (`i18n`, `shared`, `ui-components`) before the web app. The root `yarn build` stops at the mobile workspace, which has no build script, so CI builds each workspace explicitly (see [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)).
+Build `packages/i18n` before the web app, which reads its strings from the package's `dist`. The page is a static build: [`vercel.json`](vercel.json) holds the build command and the output directory (`apps/web/dist`) for deploying it from the repository root. The root `yarn build` stops at the mobile workspace, which has no build script, so CI builds each workspace explicitly (see [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)).
 
 ## Project structure
 
@@ -132,7 +133,7 @@ bongo-ai/
 │   │   ├── content-service/     # In-memory lesson CRUD
 │   │   ├── analytics-service/   # In-memory event tracking
 │   │   └── api-gateway/         # Proxy to the four services
-│   ├── web/                     # React Native Web shell (one screen)
+│   ├── web/                     # Landing page for centre owners (React, static build)
 │   ├── mobile/                  # React Native screens, no native projects
 │   └── desktop/                 # Electron shell
 ├── packages/

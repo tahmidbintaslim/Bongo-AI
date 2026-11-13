@@ -7,28 +7,19 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.[contenthash].js',
     publicPath: '/',
+    clean: true,
   },
+  // Webpack's built-in CSS support: emits a stylesheet without extra loaders.
+  experiments: { css: true },
   resolve: {
-    extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.jsx', '.web.js', '.jsx', '.js'],
-    alias: {
-      'react-native$': 'react-native-web',
-    },
+    extensions: ['.tsx', '.ts', '.jsx', '.js'],
   },
   module: {
     rules: [
       {
         test: /\.(ts|tsx|js|jsx)$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: [
-              '@babel/preset-env',
-              '@babel/preset-react',
-              '@babel/preset-typescript',
-            ],
-          },
-        },
+        use: 'babel-loader',
       },
     ],
   },

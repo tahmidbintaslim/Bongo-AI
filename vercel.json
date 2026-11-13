@@ -1,0 +1,6 @@
+{
+  "framework": null,
+  "installCommand": "yarn install --frozen-lockfile",
+  "buildCommand": "yarn workspace @bongo-ai/i18n build && yarn workspace @bongo-ai/web build",
+  "outputDirectory": "apps/web/dist"
+}

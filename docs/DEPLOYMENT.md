@@ -98,8 +98,7 @@ npm i -g vercel
 
 2. Deploy:
 ```bash
-cd apps/web
-vercel --prod
+vercel --prod   # from the repository root; vercel.json sets the build command and apps/web/dist
 ```
 
 ### Mobile App Deployment
