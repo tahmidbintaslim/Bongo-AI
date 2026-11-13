@@ -21,7 +21,7 @@
     "cors": "^2.8.5",
     "helmet": "^7.0.0",
     "express-rate-limit": "^6.10.0",
-    "zod": "^3.22.0",
+    "zod": "^4.6.6",
     "winston": "^3.10.0"
   },
   "devDependencies": {
