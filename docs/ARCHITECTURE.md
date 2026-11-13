@@ -6,7 +6,7 @@ Status: prototype. This page describes the code as it is today. Parts that are p
 
 ```
 Clients (none of them call the API yet)
-  apps/web       React Native Web, one static welcome screen
+  apps/web       React landing page for centre owners, static build
   apps/mobile    React Native screens, no android/ or ios/ project
   apps/desktop   Electron shell around the web build
 
@@ -75,9 +75,9 @@ Proxies `/api/auth`, `/api/content`, `/api/ai` and `/api/analytics` to the servi
 
 ## Shared packages
 
-- `packages/i18n`: bn-BD and en-US strings and an i18next setup with bn-BD as the default and en-US as the fallback. The mobile app uses it; the web app does not yet.
+- `packages/i18n`: bn-BD and en-US strings and an i18next setup with bn-BD as the default and en-US as the fallback. The mobile app and the web landing page use it.
 - `packages/shared`: Zod schemas (user, content, AI query, analytics event), shared types and small utilities. The services do not import it yet.
-- `packages/ui-components`: `Button`, `Card` and `Input` for React Native and React Native Web. The web app uses `Button` and `Card`.
+- `packages/ui-components`: `Button`, `Card` and `Input` for React Native. The web landing page does not use them.
 
 ## Infrastructure
 
