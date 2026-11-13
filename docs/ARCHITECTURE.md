@@ -77,6 +77,7 @@ Proxies `/api/auth`, `/api/content`, `/api/ai` and `/api/analytics` to the servi
 
 - `packages/i18n`: bn-BD and en-US strings and an i18next setup with bn-BD as the default and en-US as the fallback. The mobile app and the web landing page use it.
 - `packages/shared`: Zod schemas (user, content, AI query, analytics event), shared types and small utilities. The services do not import it yet.
+- `apps/web`: the landing page is one React component (`src/App.tsx`) and one stylesheet (`src/styles.css`). Colours are CSS variables on `:root`, overridden under `[data-theme='dark']`; the phone and the other mock screens are HTML and CSS, not images. Fonts load from Google Fonts in `public/index.html`.
 - `packages/ui-components`: `Button`, `Card` and `Input` for React Native. The web landing page does not use them.
 
 ## Infrastructure
