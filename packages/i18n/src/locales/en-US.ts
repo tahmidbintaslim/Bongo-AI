@@ -79,31 +79,93 @@ export default {
   landing: {
     metaTitle: "Bongo AI: a coaching centre's own Bangla AI tutor",
     switchLanguage: 'বাংলা',
+    nav: {
+      label: 'Main menu',
+      how: 'How it works',
+      privacy: 'Privacy',
+      faq: 'FAQ',
+    },
+    theme: { dark: 'Switch to dark theme', light: 'Switch to light theme' },
+    pill: { strong: 'Pilot in progress', rest: 'what is not built yet' },
+    subjects: ['Physics', 'Chemistry', 'Maths', 'Biology'],
+    headingRest: 'answers',
+    headingLine2: ['from your ', 'notes', ''],
+    pause: 'Pause the changing subject name',
+    play: 'Resume the changing subject name',
     heading: "Your coaching centre's own Bangla AI tutor",
     lede: "It answers students only from your centre's notes and model tests, and shows you which notes they ask about most and which questions the notes do not answer.",
     requestPilot: 'Request a pilot',
     requestPilotNote: 'The button opens a request form on GitHub. You need a GitHub account, and the request is visible to everyone.',
-    seeHow: 'How it works',
+    tryDemo: 'Try the demo centre',
+    stat: {
+      caption: 'questions in the last 7 days',
+      note: "Sample data. The owner's dashboard shows this count.",
+    },
+    annotation: ['Each answer', 'names the note', 'it came from.'],
+    phone: { centre: 'Sample Coaching Centre', placeholder: 'Type your question' },
+    moments: {
+      heading: 'The moments it is for',
+      items: [
+        {
+          art: '11:00',
+          tag: 'At night',
+          title: 'A question at 11 pm',
+          body: 'The teacher is not around. The tutor answers from your notes at any hour.',
+        },
+        {
+          art: '7 days',
+          tag: 'Before the exam',
+          title: 'The week before the exam',
+          body: 'Your dashboard shows which notes students are asking about most.',
+        },
+        {
+          art: 'Closed',
+          tag: 'On a day off',
+          title: 'The day the centre is closed',
+          body: 'A student opens the link, enters the join code and asks.',
+        },
+        {
+          art: '?',
+          tag: 'Outside the notes',
+          title: 'A question the notes miss',
+          body: 'The tutor says the notes do not cover it and tells the student to ask their teacher. The question appears on your list.',
+        },
+      ],
+    },
     howHeading: 'How it works',
     steps: [
       {
+        label: 'Step 1',
         title: 'You give your notes',
         body: 'You add notes by pasting their text into the dashboard.',
       },
       {
+        label: 'Step 2',
         title: 'Students ask with a join code',
         body: "They open a link, enter your centre's join code and ask. If the notes do not cover a question, the tutor says so and tells the student to ask their teacher.",
       },
       {
+        label: 'Step 3',
         title: 'You see what they asked and what the notes miss',
         body: 'The dashboard shows the last 7 days: active students, number of questions, the most-asked notes, and the questions the notes did not answer.',
       },
     ],
-    stepNumbers: ['1', '2', '3'],
+    paste: {
+      caption: 'Adding a note',
+      nameLabel: 'Note name',
+      textLabel: 'Note text',
+      text: "Newton's second law: the rate of change of momentum of a body is proportional to the force applied to it. When the mass is constant, F = ma.",
+      button: 'Add note',
+    },
+    join: {
+      caption: 'Student entry',
+      label: 'Join code',
+      code: 'ABC123',
+      button: 'Enter',
+    },
     sample: {
-      heading: 'What it looks like',
       label: 'Sample',
-      disclaimer: 'Every number, note and question below is sample data. None of it comes from a real centre.',
+      disclaimer: 'Every number, note and question on this page is sample data. None of it comes from a real centre.',
       weeklyCaption: "Owner's dashboard: last 7 days",
       activeStudents: 'Active students',
       activeStudentsValue: '42',
@@ -128,6 +190,12 @@ export default {
     },
     privacyHeading: 'Your notes are only for your students',
     privacyBody: "Each centre's notes are used only for that centre's students.",
+    privacyVisual: {
+      caption: 'Two centres, separate notes',
+      centres: ['Centre A', 'Centre B'],
+      notes: 'Its own notes',
+      students: 'Its own students',
+    },
     notBuiltHeading: 'What is not built yet',
     notBuiltIntro: "The first pilot has the student question page and the owner's dashboard. The things below do not exist yet.",
     notBuilt: [
@@ -135,7 +203,41 @@ export default {
       'Accounts.',
       'Billing.',
     ],
-    pilotHeading: 'Want to try it at your centre?',
+    faq: {
+      heading: ['Plain questions,', 'honest answers'],
+      items: [
+        {
+          q: 'Where do the answers come from?',
+          a: "Only from your centre's notes and model tests.",
+        },
+        {
+          q: 'What happens when the notes do not cover a question?',
+          a: 'The tutor says so and tells the student to ask their teacher. The question shows up on your dashboard in the list of unanswered questions.',
+        },
+        {
+          q: 'Can another centre use my notes?',
+          a: "No. Each centre's notes are used only for that centre's students.",
+        },
+        {
+          q: 'How do I add notes?',
+          a: 'By pasting their text into the dashboard. PDF and photo upload are not built yet.',
+        },
+        {
+          q: 'Do students need an account?',
+          a: "No. Accounts are not built yet. A student opens a link and enters your centre's join code.",
+        },
+        {
+          q: 'What does it cost?',
+          a: 'No price has been set and billing is not built. For now there is only the pilot.',
+        },
+      ],
+    },
+    pilotHeading: ['Want to try it', 'at your centre?'],
     repository: 'See the GitHub repository',
+    footer: {
+      product: 'Product',
+      pilot: 'Pilot',
+      code: 'Code',
+    },
   },
 };
