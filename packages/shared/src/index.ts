@@ -23,7 +23,7 @@ export const ContentSchema = z.object({
   grade: z.number().min(1).max(12),
   language: z.enum(['bn', 'en']).default('bn'),
   content: z.any(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -34,7 +34,7 @@ export type Content = z.infer<typeof ContentSchema>;
 export const AIQuerySchema = z.object({
   query: z.string(),
   userId: z.string().uuid(),
-  context: z.record(z.any()).optional(),
+  context: z.record(z.string(), z.any()).optional(),
   language: z.enum(['bn', 'en']).default('bn'),
 });
 
@@ -44,7 +44,7 @@ export type AIQuery = z.infer<typeof AIQuerySchema>;
 export const AnalyticsEventSchema = z.object({
   eventType: z.string(),
   userId: z.string().uuid().optional(),
-  properties: z.record(z.any()),
+  properties: z.record(z.string(), z.any()),
   timestamp: z.date(),
 });
 

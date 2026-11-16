@@ -8,7 +8,7 @@ export const createContentSchema = z.object({
   tags: z.array(z.string()).optional(),
   level: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   language: z.enum(['bn', 'en']).default('bn'),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 export const updateContentSchema = createContentSchema.partial();
