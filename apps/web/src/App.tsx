@@ -1,9 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import '@bongo-ai/i18n';
 
-export const PILOT_URL =
-  'https://github.com/tahmidbintaslim/Bongo-AI/issues/new?title=Pilot+request';
+// Pilot buttons jump to the request form at the bottom of the page.
+export const PILOT_URL = '#pilot';
+// The pilot runs inside the Shikhbo app, which saves the requests.
+export const PILOT_API = 'https://shikhbo-ai.vercel.app/api/pilot';
 const DEMO_URL = 'https://shikhbo-ai.vercel.app/c/demo-coaching';
 const REPO_URL = 'https://github.com/tahmidbintaslim/Bongo-AI';
 const PANELS = ['yellow', 'blue', 'peach', 'pink'];
@@ -39,6 +41,70 @@ const PLAY = 'M8 5.5v13l11-6.5z';
 const prefersReducedMotion = () =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+type FormState = 'idle' | 'sending' | 'done' | 'error';
+
+/** Name, centre, phone and city go to the pilot team; nothing else is collected. */
+export function PilotForm() {
+  const { t } = useTranslation();
+  const [state, setState] = useState<FormState>('idle');
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.currentTarget));
+    setState('sending');
+    try {
+      const res = await fetch(PILOT_API, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      setState(res.ok ? 'done' : 'error');
+    } catch {
+      setState('error');
+    }
+  }
+
+  if (state === 'done') {
+    return (
+      <p className="form-done" role="status">
+        {t('landing.pilotForm.done')}
+      </p>
+    );
+  }
+  const field = (name: string, props: Record<string, unknown> = {}) => (
+    <label>
+      <span>{t(`landing.pilotForm.${name}`)}</span>
+      <input name={name} required maxLength={80} {...props} />
+    </label>
+  );
+  return (
+    <form className="pilot-form" onSubmit={submit}>
+      {field('name', { autoComplete: 'name' })}
+      {field('centre', { maxLength: 120, autoComplete: 'organization' })}
+      {field('phone', {
+        type: 'tel',
+        inputMode: 'tel',
+        autoComplete: 'tel',
+        pattern: '\\+?[0-9 \\-]{7,20}',
+        maxLength: 20,
+      })}
+      {field('city', { required: false, autoComplete: 'address-level2' })}
+      {/* Hidden from people; a bot that fills it is rejected by the server. */}
+      <input className="trap" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <button className="button" type="submit" disabled={state === 'sending'}>
+        {t(state === 'sending' ? 'landing.pilotForm.sending' : 'landing.requestPilot')}
+        <Icon d={ARROW} size={18} />
+      </button>
+      {state === 'error' && (
+        <p className="form-error" role="alert">
+          {t('landing.pilotForm.error')}
+        </p>
+      )}
+      <p className="note">{t('landing.pilotForm.privacy')}</p>
+    </form>
+  );
+}
 
 const App = () => {
   const { t, i18n } = useTranslation();
@@ -355,7 +421,7 @@ const App = () => {
           <p className="note">{t('landing.sample.disclaimer')}</p>
         </section>
 
-        <section className="wrap" aria-labelledby="pilot-h">
+        <section className="wrap" id="pilot" aria-labelledby="pilot-h">
           <div className="cta">
             <h2 id="pilot-h">
               {list<string>('landing.pilotHeading')[0]}
@@ -363,10 +429,8 @@ const App = () => {
               <span className="ink">{list<string>('landing.pilotHeading')[1]}</span>
             </h2>
             <p className="note">{t('landing.requestPilotNote')}</p>
-            <div className="actions">
-              {pilotLink}
-              {demoLink}
-            </div>
+            <PilotForm />
+            <div className="actions">{demoLink}</div>
           </div>
         </section>
       </main>

@@ -1007,3 +1007,69 @@ details p {
     transition: none !important;
   }
 }
+
+/* Pilot request form */
+
+.pilot-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.9rem 1rem;
+  margin-top: 1.5rem;
+  max-width: 46rem;
+}
+
+.pilot-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.pilot-form input {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(23, 23, 23, 0.25);
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #171717;
+  min-height: 2.9rem;
+}
+
+.pilot-form input:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.pilot-form .button,
+.pilot-form .note,
+.pilot-form .form-error {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.pilot-form .button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.pilot-form .trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+}
+
+.form-error {
+  margin: 0;
+  color: #9b1c1c;
+  font-weight: 600;
+}
+
+.form-done {
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.2rem;
+  border-radius: 0.75rem;
+  background: #fff;
+  font-weight: 600;
+}
