@@ -1,6 +1,6 @@
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
-import App, { PILOT_URL } from '../App';
+import App, { PILOT_API, PILOT_URL, PilotForm } from '../App';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -32,5 +32,28 @@ describe('landing page', () => {
     expect(h1()).toBe('Physics answersfrom your notes');
     expect(document.documentElement.lang).toBe('en-US');
     expect(container.querySelector('a.button')?.textContent).toBe('Request a pilot');
+  });
+
+  it('sends a pilot request and thanks the owner', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true });
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => createRoot(container).render(<PilotForm />));
+
+    const set = (name: string, value: string) => {
+      container.querySelector<HTMLInputElement>(`input[name="${name}"]`)!.value = value;
+    };
+    set('name', 'Rahim');
+    set('centre', 'Alo Coaching');
+    set('phone', '01711000000');
+    await act(async () => {
+      container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(PILOT_API, expect.objectContaining({ method: 'POST' }));
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body).toMatchObject({ name: 'Rahim', centre: 'Alo Coaching', phone: '01711000000', website: '' });
+    expect(container.querySelector('[role="status"]')).not.toBeNull();
   });
 });
