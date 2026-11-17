@@ -96,7 +96,7 @@ export default {
     lede: "It answers students only from your centre's notes and model tests, and shows you which notes they ask about most and which questions the notes do not answer.",
     requestPilot: 'Request a pilot',
     requestPilotNote: 'The button opens a request form on GitHub. You need a GitHub account, and the request is visible to everyone.',
-    tryDemo: 'Try the demo centre',
+    tryDemo: 'Try the demo centre (join code: WF5E6XKS)',
     stat: {
       caption: 'questions in the last 7 days',
       note: "Sample data. The owner's dashboard shows this count.",
